@@ -3,8 +3,20 @@
 <body>
     {% include 'incs/nav.html' %}
 
-    {% block context %}
+    <style>
+        /* Page-level layout helpers */
+        .page-container {
+            min-height: calc(100vh - 60px);
+            padding-bottom: 3rem;
+        }
 
+        h1, h2, h3, h4, h5 {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+    </style>
+
+    {% block context %}
 
 
     {% endblock %}

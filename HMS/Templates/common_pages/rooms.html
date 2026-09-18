@@ -1,4 +1,13 @@
 <div class="container py-5 clearfix">
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .cursor-pointer:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+    </style>
     <div id="messages">
         {% for m in messages %}
         <div class="alert alert-{{m.tags}}">
@@ -76,7 +85,7 @@
         </thead>
         <tbody>
             {% for room in rooms %}
-            <tr>
+            <tr class="cursor-pointer" onclick="window.location='{% url 'room-detail' room.number %}'">
                 <td>{{ room.number }}</td>
                 <td>{{ room.capacity }}</td>
                 <td>{{ room.numberOfBeds }}</td>
@@ -84,14 +93,14 @@
                 <td>{{ room.price }}</td>
 
                 {% if role != "guest" %}
-                <td> <a href="{% url 'room-profile' room.number %}" class="btn btn-info btn-sm w-100">View</a>
+                <td> <a href="{% url 'room-profile' room.number %}" class="btn btn-info btn-sm w-100" onclick="event.stopPropagation()">View</a>
                 </td>
                 {% if role == 'manager' or role == 'admin' %}<td> <a href="{% url 'room-edit' room.number %}"
-                        class="btn btn-sm btn-primary w-100">Edit&nbsp;Room</a></td> {% endif %}
+                        class="btn btn-sm btn-primary w-100" onclick="event.stopPropagation()">Edit&nbsp;Room</a></td> {% endif %}
                 {% endif %}
                 {% if role == "guest" or role == "receptionist" %}
                 <td>
-                    <form action="{% url 'booking-make' %}" method="POST">
+                    <form action="{% url 'booking-make' %}" method="POST" onclick="event.stopPropagation()">
                         {% csrf_token %}
                         <input type="hidden" value="{{ room }}" name="roomid">
                         <input type="date" value="{{fd}}" name="fd" class="d-none">

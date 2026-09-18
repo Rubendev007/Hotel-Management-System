@@ -110,7 +110,11 @@ def login_page(request):
 
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                # Post-login navigation: guests to room list, others to profile
+                if user.groups.filter(name='guest').exists():
+                    return redirect('rooms')
+                else:
+                    return redirect('home')
             else:
                 messages.info(request, "Username or Password is incorrect")
 
@@ -405,7 +409,8 @@ def guest_profile(request, pk):
         "role": role,
         "guest": guest,
         "eventAttendees": eventAttendees,
-        "bookings": bookings
+        "bookings": bookings,
+        "today": date.today(),
     }
     return render(request, path + "guest-profile.html", context)
 

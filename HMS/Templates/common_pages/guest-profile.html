@@ -1,140 +1,151 @@
-<div class="container">
-    <div class="shadow-lg p-5">
-        <div class="row mt-5">
-            <div class="col-6">
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    <div class="p-2 h4">
-                        <span>Name:</span>
-                        {% if guest.user.id != request.user.id %}
-                        <span class="font-weight-normal">{{guest.user.first_name}} </span>
-                        {% else %}
-                        <input type="text" class="form-control border border-secondary" id="id_first_name"
-                            value="{{guest.user.first_name}}" name="first_name">
-                        {% endif %}
-                    </div>
-
-                    <br>
-                    <div class="p-2 h4">
-                        <span>Surname:</span>
-                        {% if guest.user.id != request.user.id %}
-                        <span class="font-weight-normal"> {{guest.user.last_name}}</span>
-                        {% else %}
-                        <input type="text" class="form-control border border-secondary" id="id_last_name"
-                            value="{{guest.user.last_name}}" name="last_name">
-                        {% endif %}
-                    </div>
-
-
-                    <div class="p-2 h4">
-                        <span>Email :</span>
-                        <span class="font-weight-normal">{{guest.user.email}}</span>
-                    </div>
-
-                    <br>
-
-                    <div class="p-2 h4">
-                        <span>Account Creation Date:</span>
-                        <span class="font-weight-normal">{{guest.user.date_joined}}</span>
-                    </div>
-
-            </div>
-
-            <div class="col-6">
-
-                <div class="p-2 h4">
-                    <span>Phone Number: </span>
-                    {% if guest.user.id != request.user.id %}
-
-                    <span class="font-weight-normal">{{guest.phoneNumber}}</span>
-                    {% else %}
-                    <input type="text" class="form-control border border-secondary" id="id_phoneNumber"
-                        value="{{guest.phoneNumber}}" name="phoneNumber">
-                    {% endif %}
+<div class="container py-5 page-container">
+    <!-- User Info Card -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h3 class="mb-0">Profile Information</h3>
                 </div>
-
-                <br>
-                {% if guest.user.id == request.user.id %}
-                <button type="submit" name="submit" class="btn btn-success float-right">Save Changes</button>
-                {% endif %}
-                </form>
-            </div>
-        </div>
-
-        <br>
-
-        {% if eventAttendees.first != None %}
-        <div class="row">
-            <h4>List Of Attended Events</h4>
-            <table class="table table-hover table-striped">
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Location</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for eveAt in eventAttendees %}
-                    <tr>
-                        <td>{{eveAt.eventType}}</td>
-                        <td>{{eveAt.location}}</td>
-                        <td>{{eveAt.startDate}}</td>
-                        <td>{{eveAt.endtDate}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-
-            </table>
-        </div>
-        {% endif %}
-
-        <br>
-
-        <div class="row">
-            <div class="table-responsive table-striped my-5">
-                <div class="table-header row">
-
-                    <div class="col-sm-12 col-md-12 col-lg-4 mb-4">
-                        <h2>All Past Reservations</h2>
-                    </div>
-
-                </div>
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Reservation Date</th>
-                            <th>Check in Date</th>
-                            <th>Check out Date</th>
-                            <th>Number of residents</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for bo in bookings %}
-                        <tr>
-                            <td>{{bo.dateOfReservation}}</td>
-                            <td>{{bo.startDate}}</td>
-                            <td>{{bo.endDate}}</td>
-                            <td>{{bo.numOfResidents}}</td>
-
-                            {% if role == "guest"%}
-                            <form action="{% url 'request-refund' %}" method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" value="{{bo.id}}" name="bookingId">
-                                <td><button type="submit" class="btn btn-outline-success btn-lg " name="refReq">Send
-                                        Refund Request</button></td>
-                            </form>
+                <div class="card-body">
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase font-weight-bold">First Name</label>
+                                {% if guest.user.id == request.user.id %}
+                                <input type="text" class="form-control border-secondary" value="{{ guest.user.first_name }}" name="first_name">
+                                {% else %}
+                                <h5 class="font-weight-normal mb-0">{{ guest.user.first_name }}</h5>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase font-weight-bold">Surname</label>
+                                {% if guest.user.id == request.user.id %}
+                                <input type="text" class="form-control border-secondary" value="{{ guest.user.last_name }}" name="last_name">
+                                {% else %}
+                                <h5 class="font-weight-normal mb-0">{{ guest.user.last_name }}</h5>
+                                {% endif %}
+                                </div>
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase font-weight-bold">Email</label>
+                                <h5 class="font-weight-normal mb-0">{{ guest.user.email }}</h5>
+                            </div>
+                            <div>
+                                <label class="text-muted small text-uppercase font-weight-bold">Account Created</label>
+                                <h5 class="font-weight-normal mb-0">{{ guest.user.date_joined }}</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase font-weight-bold">Phone Number</label>
+                                {% if guest.user.id != request.user.id %}
+                                <h5 class="font-weight-normal mb-0">{{ guest.phoneNumber }}</h5>
+                                {% else %}
+                                <input type="text" class="form-control border-secondary" value="{{ guest.phoneNumber }}" name="phoneNumber">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="text-muted small text-uppercase font-weight-bold">Guest ID</label>
+                                <h5 class="font-weight-normal mb-0">{{ guest.user.id }}</h5>
+                            </div>
+                            {% if guest.user.id == request.user.id %}
+                            <div class="mt-4 text-right">
+                                <button type="submit" name="submit" class="btn btn-primary shadow-sm">Save Changes</button>
+                            </div>
                             {% endif %}
-                        </tr>
-                        {% endfor %}
+                        </div>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    </tbody>
+    <!-- Attended Events -->
+    {% if eventAttendees %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">Attended Events</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Event Type</th>
+                                    <th>Location</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for eveAt in eventAttendees %}
+                                <tr>
+                                    <td>{{ eveAt.eventType }}</td>
+                                    <td>{{ eveAt.location }}</td>
+                                    <td>{{ eveAt.startDate }}</td>
+                                    <td>{{ eveAt.endtDate }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-                </table>
-
+    <!-- All Past Reservations -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">All Past Reservations</h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Reservation Date</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Residents</th>
+                                    <th>Status</th>
+                                    {% if role == "guest" %}<th>Action</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bo in bookings %}
+                                <tr>
+                                    <td>{{ bo.dateOfReservation }}</td>
+                                    <td>{{ bo.startDate }}</td>
+                                    <td>{{ bo.endDate }}</td>
+                                    <td>{{ bo.numOfResidents }}</td>
+                                    <td>
+                                        <span class="badge badge-pill {% if bo.endDate|date:'Y-m-d' >= today|date:'Y-m-d' %}badge-success{% else %}badge-warning{% endif %}">
+                                            {% if bo.endDate|date:'Y-m-d' >= today|date:'Y-m-d' %}Active{% else %}Completed{% endif %}
+                                        </span>
+                                    </td>
+                                    {% if role == "guest" %}
+                                    <td>
+                                        <form action="{% url 'request-refund' %}" method="POST" class="mb-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" value="{{ bo.id }}" name="bookingId">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Send Refund Request</button>
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

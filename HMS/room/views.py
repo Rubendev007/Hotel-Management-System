@@ -211,6 +211,37 @@ def room_edit(request, pk):
     return render(request, path + "room-edit.html", context)
 
 
+@login_required(login_url='login')
+def room_detail(request, pk):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    path = role + "/"
+
+    room = Room.objects.get(number=pk)
+    amenities = {
+        'King': ['King-size Bed', 'Premium Linens', 'Mini Bar', 'Work Desk', 'Smart TV', 'Air Conditioning'],
+        'Luxury': ['King-size Bed', 'Jacuzzi', 'Mini Bar', 'Work Desk', 'Smart TV', 'Air Conditioning', 'Room Service', 'Premium Toiletries'],
+        'Normal': ['Double Bed', 'Basic Amenities', 'TV', 'Air Conditioning', 'Wi-Fi', 'Coffee Maker'],
+        'Economic': ['Single Bed', 'Shared Bathroom', 'Wi-Fi', 'Basic Amenities'],
+    }
+    room_amenities = amenities.get(room.roomType, [])
+
+    import datetime
+    today = datetime.date.today()
+    if room.statusStartDate and room.statusEndDate:
+        is_available = not (room.statusStartDate <= today <= room.statusEndDate)
+    else:
+        is_available = True
+
+    context = {
+        "role": role,
+        "room": room,
+        "amenities": room_amenities,
+        "is_available": is_available,
+    }
+    return render(request, path + "room-detail.html", context)
+
+
 @ login_required(login_url='login')
 def room_services(request):
     user_groups = request.user.groups.all()

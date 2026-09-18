@@ -1,0 +1,80 @@
+{% extends 'index.html' %}
+
+{% block context %}
+<div class="landing-hero text-center py-5 mb-5">
+    <div class="container">
+        <h1 class="display-4 font-weight-bold">Welcome to CrewMates Hotel</h1>
+        <p class="lead text-muted mt-3">Experience comfort, elegance, and exceptional service in the heart of the city. Whether you're traveling for business or leisure, our hotel offers the perfect blend of luxury and convenience.</p>
+        <div class="mt-4">
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-5 mr-3">Sign In</a>
+            <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg px-5">Create Account</a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-circle mx-auto mb-3">
+                        <i class="fas fa-bed fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Premium Rooms</h5>
+                    <p class="text-muted">Spacious accommodations with modern amenities designed for your comfort.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-circle mx-auto mb-3">
+                        <i class="fas fa-concierge-bell fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Room Service</h5>
+                    <p class="text-muted">24/7 concierge service to ensure your stay is nothing short of perfect.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="icon-circle mx-auto mb-3">
+                        <i class="fas fa-utensils fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Dining</h5>
+                    <p class="text-muted">On-site restaurant serving a variety of cuisines to satisfy every palate.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Why Choose Us</h2>
+            <div class="row text-center">
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <i class="fas fa-map-marker-alt fa-2x text-primary mb-3"></i>
+                    <h6>Prime Location</h6>
+                    <p class="text-muted small">Centrally located with easy access to attractions and business districts.</p>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <i class="fas fa-wifi fa-2x text-primary mb-3"></i>
+                    <h6>Free WiFi</h6>
+                    <p class="text-muted small">High-speed internet throughout the property.</p>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                    <h6>Secure Booking</h6>
+                    <p class="text-muted small">Your payment and personal information is always protected.</p>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <i class="fas fa-headset fa-2x text-primary mb-3"></i>
+                    <h6>24/7 Support</h6>
+                    <p class="text-muted small">Our team is always ready to assist with your needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

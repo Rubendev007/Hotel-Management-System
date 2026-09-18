@@ -18,8 +18,9 @@ from hotel.models import *
 from .forms import *
 
 
-@login_required(login_url='login')
 def home(request):
+    if not request.user.is_authenticated:
+        return render(request, "landing.html")
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     if role != "guest":

@@ -1,69 +1,94 @@
-<div class="container">
+<div class="container py-5 page-container">
+    {% if messages %}
+    <div class="alert alert-warning shadow-sm">{{ messages|first }}</div>
+    {% endif %}
 
-    <div class="row py-5 h5">
-        <p>You are currently trying to book This room:
-            <br>
-            Between {{fd}} - {{ld}}
-            <br>
-            Room Number : {{ room.number }}
-            <br>
-            Room capacity : {{ room.capacity }}
-            <br>
-            Number of beds in the room : {{ room.numberOfBeds }}
-            <br>
-            Room Type : {{ room.roomType }}
-            <br>
-            Room price : {{ room.price }}
-            <br>
-            <br>
-            Total price : {{total}}
-        </p>
-    </div>
+    <div class="row">
+        <!-- Left column: Room & Guest Details -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="mb-0">Booking Details</h4>
+                    <p class="text-muted mb-0 small">Review your selection before confirming</p>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light rounded p-3 mb-4">
+                        <h5 class="mb-2">Room <strong>{{ room.number }}</strong></h5>
+                        <div class="row text-sm">
+                            <div class="col-6"><strong>Type:</strong> {{ room.roomType }}</div>
+                            <div class="col-6"><strong>Capacity:</strong> {{ room.capacity }} guests</div>
+                            <div class="col-6"><strong>Beds:</strong> {{ room.numberOfBeds }}</div>
+                            <div class="col-6"><strong>Price / night:</strong> ${{ room.price }}</div>
+                        </div>
+                        <hr class="my-2">
+                        <div><strong>Dates:</strong> {{ fd }} → {{ ld }}</div>
+                    </div>
 
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" value="{{ room }}" name="roomid">
+                        <input type="date" value="{{ fd }}" name="fd" class="d-none">
+                        <input type="date" value="{{ ld }}" name="ld" class="d-none">
 
-    <form action="" method="POST">
-        {% csrf_token %}
-        <div class=row>
-            <input type="hidden" value="{{ room }}" name="roomid">
-            <input type="date" value="{{ fd }}" name="fd" class="d-none">
-            <input type="date" value="{{ ld }}" name="ld" class="d-none">
-            {% if room.capacity > 1 %}
-            <div class="col-6">
-                <h4>Add Dependee</h4>
-                <input type="text" class="form-control d-inline" name="depName">
-                <button type="submit" name="add"
-                    class="form-control btn btn-sm btn-outline-success px-3 d-inline">Add</button>
+                        <h6 class="font-weight-bold mb-2">Dependees (optional)</h6>
+                        <div class="form-row mb-3">
+                            <div class="col-auto flex-grow-1">
+                                <input type="text" class="form-control" name="depName" placeholder="Name of additional guest">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" name="add" class="btn btn-outline-success">Add</button>
+                            </div>
+                        </div>
+
+                        {% if names %}
+                        <ul class="list-group mb-3">
+                            <h6>Dependees</h6>
+                            {% for n in names %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
+                                {{ n }}
+                                <input type="hidden" name="name{{ forloop.counter }}" value="{{ n }}">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        {% if role == "receptionist" %}
+                        <div class="form-group mb-3">
+                            <label for="id_guest" class="font-weight-bold">Select Guest</label>
+                            <select class="form-control" name="guest" required id="id_guest">
+                                {% for guest in guests %}
+                                <option value="{{ guest.id }}">{{ guest.user.first_name }} {{ guest.user.last_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <button type="submit" name="bookGuestButton" class="btn btn-primary btn-lg w-100 shadow-sm">Book This Room</button>
+                    </form>
+                </div>
             </div>
-
-            <div class="col-6">
-                <ul id="myList" class="list-group">
-                    <h4>List Of Dependees</h4>
-                    {% for n in names %}
-                    <li class="list-group-item">{{n}}<input type="hidden" name="name{{forloop.counter}}" value="{{n}}">
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            {% if role == "receptionist" %}
-
-            <label for="exampleFormControlSelect1">Select A Guest
-            </label>
-            <select class="form-control" name="guest" required="" id="id_guest">
-                {% for guest in guests %}
-                <option value="{{guest.id}}">{{guest.user.first_name}} {{guest.user.last_name}}</option>
-                {% endfor %}
-            </select>
-            {% endif %}
-
-            <button type="submit" class="btn btn-info w-100 mt-3" name="bookGuestButton">Book</button>
         </div>
-    </form>
 
-
-    <div class="py-3">
-        &nbsp
+        <!-- Right column: Price Summary -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 80px;">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <h4 class="mb-0">Booking Summary</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>Room {{ room.number }}</span><span>${{ room.price }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 bg-light">
+                            <span><strong>Subtotal</strong></span><span><strong>${{ total }}</strong></span>
+                        </li>
+                    </ul>
+                    <div class="mt-3 text-center text-muted small">
+                        Tax and fees calculated at checkout.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
 </div>

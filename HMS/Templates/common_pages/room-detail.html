@@ -1,0 +1,70 @@
+{% extends '../index.html' %}
+{% block context %}
+<div class="container py-5">
+    {% if messages %}
+    <div class="alert alert-warning">
+        {{ messages|first }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="room-photo-placeholder text-center py-5 bg-light rounded">
+                        <i class="fas fa-hotel fa-5x text-muted mb-3"></i>
+                        <h4 class="text-muted">Room {{ room.number }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="mb-3">Room {{ room.number }}</h2>
+                    <span class="badge badge-{% if is_available %}success{% else %}danger{% endif %} badge-pill mb-3">
+                        {% if is_available %}Available{% else %}Occupied{% endif %}
+                    </span>
+
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="font-weight-bold">Room Type</td>
+                            <td>{{ room.roomType }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Capacity</td>
+                            <td>{{ room.capacity }} guests</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Beds</td>
+                            <td>{{ room.numberOfBeds }}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Price</td>
+                            <td>${{ room.price }} per night</td>
+                        </tr>
+                    </table>
+
+                    <h5 class="mt-4 mb-2">Amenities</h5>
+                    <ul class="list-group list-group-flush mb-4">
+                        {% for amenity in amenities %}
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success mr-2"></i>{{ amenity }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <h5 class="mb-2">Proceed to Book</h5>
+                    <form action="{% url 'booking-make' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" value="{{ room.number }}" name="roomid">
+                        <input type="hidden" value="" name="fd">
+                        <input type="hidden" value="" name="ld">
+                        <button type="submit" name="book" class="btn btn-primary btn-lg w-100">Book This Room</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
