@@ -452,11 +452,21 @@ def booking_make(request):
         except (Room.DoesNotExist, ValueError, TypeError):
             messages.warning(request, "Please select a valid room and check-in/check-out dates.")
             return redirect("rooms")
-        numberOfDays = abs((end_date-start_date).days)
-        # get room peice:
-        price = room.price
-        total = price * numberOfDays
+        total_price = 0.0
+        current_date = start_date.date() if hasattr(start_date, "date") else start_date
+        end_date_val = end_date.date() if hasattr(end_date, "date") else end_date
 
+        while current_date < end_date_val:
+            nightly_rate = float(room.price)
+            active_seasons = Season.objects.filter(is_active=True, start_date__lte=current_date, end_date__gte=current_date)
+            if active_seasons.exists():
+                max_markup = max([float(s.markup_percentage) for s in active_seasons])
+                nightly_rate += nightly_rate * (max_markup / 100.0)
+            total_price += nightly_rate
+            current_date += timedelta(days=1)
+
+        total = total_price
+        numberOfDays = abs((end_date-start_date).days)
         if 'add' in request.POST:  # add dependee
             name = request.POST.get("depName")
             names.append(name)
@@ -471,7 +481,7 @@ def booking_make(request):
             else:
                 curguest = request.user.guest
             curbooking = Booking(guest=curguest, roomNumber=room, startDate=request.POST.get(
-                "fd"), endDate=request.POST.get("ld"))
+                "fd"), endDate=request.POST.get("ld"), total_price=total)
             curbooking.save()
 
             for i in range(room.capacity-1):

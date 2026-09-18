@@ -32,6 +32,7 @@ class Booking(models.Model):
     dateOfReservation = models.DateField(default=timezone.now)
     startDate = models.DateField()
     endDate = models.DateField()
+    total_price = models.FloatField(default=0.00)
 
     def numOfDep(self):
         return Dependees.objects.filter(booking=self).count()

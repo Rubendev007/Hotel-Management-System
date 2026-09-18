@@ -1,121 +1,149 @@
-<div class="container">
-    <div class="shadow-lg p-5">
-
-        <div class="row mt-5">
-
-            <div class="col-6">
-
-                <div class="p-2 h4">
-                    <span>Room Number:</span>
-                    <span class="font-weight-normal">{{room.number}}</span>
-                </div>
-
-                <div class="p-2 h4">
-                    <span>Number Of Beds:</span>
-                    <span class="font-weight-normal">{{room.numberOfBeds}}</span>
-                </div>
-
-                <div class="p-2 h4">
-                    <span>Price:</span>
-                    <span class="font-weight-normal">{{room.price}}</span>
-                </div>
-
-                <div class="p-2 h4">
-                    <span>Room Type:</span>
-                    <span class="font-weight-normal">{{ room.roomType }}</span>
-
-                </div>
-
-                <div class="p-2 h4">
-                    <span>Capacity: </span>
-                    <span class="font-weight-normal">{{room.capacity}}</span>
-
-                </div>
-
-            </div>
-
-            <div class="col-6">
-
-
-
-                {% if role == "manager" or role == "admin" %}
-                <div class="p-2 h4 ">
-                    <form action="" method="POST">
-                        {% csrf_token %}
-                        <input type="date" placeholder="Enter Start Date" name="bsd" required
-                            class="form-control w-50 mb-2">
-                        <input type="date" placeholder="Enter End Date" name="bed" required
-                            class="form-control w-50 mb-2">
-                        <button name="lockRoom" type="submit" class="btn btn-info w-50">Lock This Room</button>
-                        <br>
-
-                    </form>
-                    <form action="" method="POST">
-                        {% csrf_token %}
-                        <hr>
-                        {% if room.statusStartDate != None %}
-                        <div>
-                            This room is closed in between: <br>
-                            from {{room.statusStartDate}} <br>
-                            to {{room.statusEndDate}}
-                            <br>
-                            <hr>
-                            <button name="unlockRoom" type="submit" class="btn btn-info w-50">Unlock This Room</button>
-                        </div>
-                        {% endif %}
-
-                        <div id="messages">
-                            {% for m in messages %}
-
-                            <div class="alert alert-danger">{{m}}</div>
-
-                            {% endfor %}
-                        </div>
-                    </form>
-                </div>
-                {% endif %}
-                <br>
-
-
-
-            </div>
+<div class="container py-4">
+  <!-- Hero Overview -->
+  <div class="card border-0 shadow-lg overflow-hidden mb-4">
+    <div class="bg-gradient text-white p-4 p-md-5" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <h1 class="h2 fw-bold mb-1">Room {{ room.number }}</h1>
+          <span class="badge bg-light text-dark fs-6 px-3 py-2">{{ room.roomType }}</span>
         </div>
-        <br>
-
-        <div class="table-responsive table-striped my-5">
-            <div class="table-header row">
-
-                <div class="col-sm-12 col-md-12 col-lg-4 mb-4">
-                    <h5>This room has these reservations</h5>
-                </div>
-
-            </div>
-
-            <table class="table table-hover table-striped">
-                <thead class="bg-secondary rounded">
-                    <tr>
-                        {% if role != 'guest' %} <th>Guest Name</th> {% endif %}
-                        <th>From </th>
-                        <th>To</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for bo in bookings %}
-                    <tr>
-                        {% if role != 'guest' %} <td><a href="{% url 'guest-profile' bo.guest.user.id %}">
-                                {{bo.guest.user.first_name}}
-                                {{bo.guest.user.last_name}}</a></td>
-                        {%endif %}
-                        <td>{{bo.startDate}}</td>
-                        <td>{{bo.endDate}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-
-            </table>
-
+        <div class="text-end">
+          <div class="h3 fw-bold mb-0">${{ room.price }}</div>
+          <div class="small opacity-75">per night</div>
         </div>
-
+      </div>
     </div>
+    <div class="card-body">
+      <div class="row g-4">
+        <!-- Specs Grid -->
+        <div class="col-md-6">
+          <h3 class="h5 fw-bold mb-3">Key Features</h3>
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-people-fill"></i></div>
+                  <div>
+                    <div class="small text-muted">Capacity</div>
+                    <div class="fw-bold">{{ room.capacity }} Guests</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-bed-fill"></i></div>
+                  <div>
+                    <div class="small text-muted">Beds</div>
+                    <div class="fw-bold">{{ room.numberOfBeds }} Bed</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-currency-dollar"></i></div>
+                  <div>
+                    <div class="small text-muted">Base Rate</div>
+                    <div class="fw-bold">${{ room.price }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-tag-fill"></i></div>
+                  <div>
+                    <div class="small text-muted">Type</div>
+                    <div class="fw-bold">{{ room.roomType }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manager controls -->
+        <div class="col-md-6">
+          {% if role == "manager" or role == "admin" %}
+          <h3 class="h5 fw-bold mb-3">Room Management</h3>
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <form action="" method="POST">
+                {% csrf_token %}
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <input type="date" placeholder="Start" name="bsd" required class="form-control" value="{{ room.statusStartDate|default:'' }}">
+                  </div>
+                  <div class="col-6">
+                    <input type="date" placeholder="End" name="bed" required class="form-control" value="{{ room.statusEndDate|default:'' }}">
+                  </div>
+                </div>
+                <div class="d-flex gap-2">
+                  <button name="lockRoom" type="submit" class="btn btn-info w-50">Lock Room</button>
+                  {% if room.statusStartDate != None %}
+                  <button name="unlockRoom" type="submit" class="btn btn-outline-secondary w-50">Unlock</button>
+                  {% endif %}
+                </div>
+              </form>
+              {% if room.statusStartDate != None %}
+              <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded border-start border-3 border-warning">
+                <strong>Locked:</strong> {{ room.statusStartDate }} → {{ room.statusEndDate }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <form action="" method="POST" class="mt-2">
+            {% csrf_token %}
+            <button name="deleteRoom" type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Delete this room?')">Delete Room</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      <div id="messages">
+        {% for m in messages %}<div class="alert alert-danger mt-3">{{ m }}</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Reservations -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light border-0 py-3 d-flex align-items-center justify-content-between">
+      <h3 class="h5 fw-bold mb-0">Reservations</h3>
+      <a href="{% url 'rooms' %}" class="btn btn-outline-primary btn-sm">Back to Catalog</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              {% if role != 'guest' %}<th>Guest</th>{% endif %}
+              <th>From</th><th>To</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bo in bookings %}
+            <tr>
+              {% if role != 'guest' %}<td><a href="{% url 'guest-profile' bo.guest.user.id %}" class="text-decoration-none">{{ bo.guest.user.first_name }} {{ bo.guest.user.last_name }}</a></td>{% endif %}
+              <td><span class="badge bg-primary">From {{ bo.startDate }}</span></td>
+              <td><span class="badge bg-info text-dark">To {{ bo.endDate }}</span></td>
+              <td><span class="badge bg-success">Active</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">No reservations.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="d-flex justify-content-between align-items-center">
+    <a href="{% url 'rooms' %}" class="btn btn-outline-secondary">Back to Catalog</a>
+    <a href="#" onclick="alert('Booking flow preserved'); return false;" class="btn btn-primary btn-lg shadow-sm">Book Room</a>
+  </div>
 </div>
