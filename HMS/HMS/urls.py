@@ -21,6 +21,9 @@ from accounts.views import *
 from room.views import *
 from hotel.views import *
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name="home"),
@@ -74,5 +77,9 @@ urlpatterns = [
     path('deleteAnnouncement/<str:pk>/',
          deleteAnnouncement, name="deleteAnnouncement"),
     path('deleteBooking/<str:pk>/', deleteBooking, name="deleteBooking"),
+    path('delete-room/<int:pk>/', delete_room, name="delete-room"),
     path('completeTask/<str:pk>/', completeTask, name="completeTask"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

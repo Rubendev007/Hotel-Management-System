@@ -11,9 +11,13 @@
         <div class="col-md-7">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-0">
-                    <div class="room-photo-placeholder text-center py-5 bg-light rounded">
+                    <div class="room-photo-placeholder text-center py-5 bg-light rounded" style="min-height:350px;">
+                        {% if room.image %}
+                        <img src="{{ room.image.url }}" alt="Room {{ room.number }}" style="max-height:350px; max-width:100%; object-fit:cover; border-radius:12px;">
+                        {% else %}
                         <i class="fas fa-hotel fa-5x text-muted mb-3"></i>
                         <h4 class="text-muted">Room {{ room.number }}</h4>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -58,8 +62,8 @@
                     <form action="{% url 'booking-make' %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" value="{{ room.number }}" name="roomid">
-                        <input type="hidden" value="" name="fd">
-                        <input type="hidden" value="" name="ld">
+                        <input type="hidden" value="{{ fd|default:'' }}" name="fd">
+                        <input type="hidden" value="{{ ld|default:'' }}" name="ld">
                         <button type="submit" name="book" class="btn btn-primary btn-lg w-100">Book This Room</button>
                     </form>
                 </div>

@@ -20,6 +20,7 @@ class Room(models.Model):
     price = models.FloatField()
     statusStartDate = models.DateField(null=True)
     statusEndDate = models.DateField(null=True)
+    image = models.ImageField(upload_to='room_images/', null=True, blank=True)
 
     def __str__(self):
         return str(self.number)

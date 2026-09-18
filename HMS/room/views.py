@@ -125,7 +125,8 @@ def add_room(request):
         price = request.POST.get('price')
         print(capacity)
         room = Room(number=number, capacity=capacity,
-                    numberOfBeds=numberOfBeds, roomType=roomType, price=price)
+                    numberOfBeds=numberOfBeds, roomType=roomType, price=price,
+                    image=request.FILES.get('image'))
 
         room.save()
         return redirect('rooms')
@@ -204,10 +205,13 @@ def room_edit(request, pk):
     }
 
     if request.method == 'POST':
-        form1 = editRoom(request.POST, instance=room)
+        form1 = editRoom(request.POST, request.FILES, instance=room)
         if form1.is_valid():
-            form1.save()
-            return redirect("room-profile", id=room.number)
+            instance = form1.save(commit=False)
+            if request.FILES.get('image'):
+                instance.image = request.FILES.get('image')
+            instance.save()
+            return redirect('rooms')
     return render(request, path + "room-edit.html", context)
 
 
@@ -228,6 +232,8 @@ def room_detail(request, pk):
 
     import datetime
     today = datetime.date.today()
+    fd = request.GET.get('fd') or str(today)
+    ld = request.GET.get('ld') or str(today + datetime.timedelta(days=2))
     if room.statusStartDate and room.statusEndDate:
         is_available = not (room.statusStartDate <= today <= room.statusEndDate)
     else:
@@ -238,6 +244,8 @@ def room_detail(request, pk):
         "room": room,
         "amenities": room_amenities,
         "is_available": is_available,
+        "fd": fd,
+        "ld": ld,
     }
     return render(request, path + "room-detail.html", context)
 
@@ -652,3 +660,17 @@ def request_refund(request):
     }
 
     return render(request, path + "request-refund.html", context)
+
+@login_required(login_url='login')
+def delete_room(request, pk):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ('manager', 'admin', 'receptionist'):
+        return redirect('rooms')
+    room = Room.objects.get(number=pk)
+    if request.method == 'POST':
+        room_number = room.number
+        room.delete()
+        messages.success(request, f"Room {room_number} deleted successfully.")
+        return redirect('rooms')
+    return redirect('rooms')
