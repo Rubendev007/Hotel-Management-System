@@ -11,3 +11,7 @@ admin.site.register(Booking)
 admin.site.register(Dependees)
 admin.site.register(RoomServices)
 admin.site.register(Refund)
+class SeasonAdmin(admin.ModelAdmin):
+    list_display = ("name", "start_date", "end_date", "markup_percentage", "is_active")
+
+admin.site.register(Season, SeasonAdmin)

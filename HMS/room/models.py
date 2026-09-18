@@ -73,3 +73,14 @@ class RoomServices(models.Model):
 
     def str(self):
         return str(self.curBooking) + " " + str(self.room) + " " + str(self.servicesType)
+
+
+class Season(models.Model):
+    name = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    markup_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} (+{self.markup_percentage}%)"
