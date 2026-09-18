@@ -1,0 +1,103 @@
+{% extends '../index.html' %}
+{% block context %}
+<div class="container py-5 page-container">
+    <!-- Welcome -->
+    <div class="card shadow-sm border-0 mb-4 bg-gradient" style="background: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); color:#fff;">
+        <div class="card-body py-5 px-4">
+            <h1 class="display-4 font-weight-bold mb-2">Welcome, {{ request.user.first_name|default:"Guest" }}!</h1>
+            <p class="lead mb-0 opacity-75">Your personal hotel portal — rooms, bookings, and events at a glance.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Active Reservation -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">Active Reservation</h5>
+                </div>
+                <div class="card-body">
+                    {% if active %}
+                    <h4 class="font-weight-bold">Room {{ active.roomNumber.number }}</h4>
+                    <p class="text-muted mb-2">{{ active.startDate }} → {{ active.endDate }}</p>
+                    <span class="badge badge-success badge-pill">Checked In</span>
+                    {% else %}
+                    <p class="text-muted">No active reservation. <a href="{% url 'rooms' %}" class="btn btn-sm btn-outline-primary mt-2">Explore Rooms</a></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Past Bookings</span>
+                        <h3 class="font-weight-bold mb-0">{{ past_count }}</h3>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Upcoming Events</span>
+                        <h3 class="font-weight-bold mb-0">{{ events|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0">Upcoming Events</h5>
+                </div>
+                <div class="card-body">
+                    {% for ev in events %}
+                    <div class="mb-2 border-bottom pb-2">
+                        <h6 class="mb-1 font-weight-bold">{{ ev.eventType }}</h6>
+                        <small class="text-muted">{{ ev.startTime }}</small>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No upcoming events.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-2">
+        <div class="col-12">
+            <h3 class="mb-4">Quick Actions</h3>
+            <div class="row">
+                <div class="col-sm-3 mb-3">
+                    <a href="{% url 'rooms' %}" class="card shadow-sm border-0 text-decoration-none text-dark h-100 d-flex flex-column justify-content-center align-items-center py-5">
+                        <i class="fas fa-bed fa-2x text-primary mb-3"></i>
+                        <h5>Explore Rooms</h5>
+                    </a>
+                </div>
+                <div class="col-sm-3 mb-3">
+                    <a href="{% url 'guest-profile' request.user.id %}" class="card shadow-sm border-0 text-decoration-none text-dark h-100 d-flex flex-column justify-content-center align-items-center py-5">
+                        <i class="fas fa-user fa-2x text-info mb-3"></i>
+                        <h5>My Bookings</h5>
+                    </a>
+                </div>
+                <div class="col-sm-3 mb-3">
+                    <a href="{% url 'events' %}" class="card shadow-sm border-0 text-decoration-none text-dark h-100 d-flex flex-column justify-content-center align-items-center py-5">
+                        <i class="fas fa-calendar-alt fa-2x text-warning mb-3"></i>
+                        <h5>Hotel Events</h5>
+                    </a>
+                </div>
+                <div class="col-sm-3 mb-3">
+                    <a href="{% url 'announcements' %}" class="card shadow-sm border-0 text-decoration-none text-dark h-100 d-flex flex-column justify-content-center align-items-center py-5">
+                        <i class="fas fa-bullhorn fa-2x text-danger mb-3"></i>
+                        <h5>Announcements</h5>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

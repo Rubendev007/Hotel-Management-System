@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name="home"),
 
+    path('guest/dashboard/', guest_dashboard, name='guest-dashboard'),
     path('room-detail/<int:pk>/', room_detail, name="room-detail"),
 
     path('login/', login_page, name="login"),

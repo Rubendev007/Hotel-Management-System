@@ -112,7 +112,7 @@ def login_page(request):
                 login(request, user)
                 # Post-login navigation: guests to room list, others to profile
                 if user.groups.filter(name='guest').exists():
-                    return redirect('rooms')
+                    return redirect('guest-dashboard')
                 else:
                     return redirect('home')
             else:

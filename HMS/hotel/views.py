@@ -499,3 +499,23 @@ def verify(request):
         return redirect("rooms")
 
     return render(request, path + "verify.html", {"role": role})
+
+def guest_dashboard(request):
+    from django.utils import timezone
+    from accounts.models import Guest
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else "guest"
+    if not request.user.is_authenticated: return redirect("login")
+    try:
+        guest = Guest.objects.get(user=request.user)
+        active = Booking.objects.filter(guest=guest, endDate__gte=timezone.now().date()).first()
+    except:
+        active = None
+    try:
+        past = Booking.objects.filter(guest=guest)
+    except:
+        past = []
+    events = Event.objects.filter(startDate__gte=timezone.now().date())[:3]
+    context = {"role":role,"guest":request.user,"active":active,"past_count":past.count() if hasattr(past,"count") else len(past),"events":events}
+    path = role + "/" if role else "guest/"
+    return render(request, path + "guest-dashboard.html", context)
