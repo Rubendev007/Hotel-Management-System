@@ -56,7 +56,7 @@ urlpatterns = [
     path('employee-profile/<str:pk>/', employee_details, name="employee-profile"),
     path('employee-edit/<str:pk>/', employee_details_edit, name="employee-edit"),
     path('employee-add/', add_employee, name="add-employee"),
-    path('admin/dashboard/', admin_dashboard, name='admin-dashboard'),
+    path('dashboard/', admin_dashboard, name='admin_dashboard'),
 
     path('guest-edit/<str:pk>', guest_edit, name="guest-edit"),
     path('guest-profile/<str:pk>', guest_profile, name="guest-profile"),

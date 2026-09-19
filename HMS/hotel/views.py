@@ -24,7 +24,7 @@ def home(request):
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     if role == "admin" or role == "manager":
-        return redirect('admin-dashboard')
+        return redirect('admin_dashboard')
     if role != "guest":
         return redirect("employee-profile", pk=request.user.id)
     else:
