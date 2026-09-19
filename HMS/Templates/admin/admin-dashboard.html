@@ -1,0 +1,70 @@
+{% extends '../index.html' %}
+{% block context %}
+<div class="container py-4">
+  <!-- Welcome Banner -->
+  <div class="p-4 mb-4 bg-gradient rounded-3 shadow-sm" style="background: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);">
+    <h1 class="h2 fw-bold text-white mb-1">Welcome back, Administrator</h1>
+    <p class="text-white-50 mb-0"><i class="bi bi-calendar3"></i> <span id="live-date"></span></p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <a href="/rooms/" class="text-decoration-none d-block h-100">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body text-center"><h5 class="card-title h4 mb-1 fw-bold text-primary">{{ total_rooms }}</h5><p class="text-muted mb-0">Total Rooms</p></div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="/bookings/" class="text-decoration-none d-block h-100">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body text-center"><h5 class="card-title h4 mb-1 fw-bold text-info">{{ active_bookings|length }}</h5><p class="text-muted mb-0">Active Bookings</p></div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="/room-services/" class="text-decoration-none d-block h-100">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body text-center"><h5 class="card-title h4 mb-1 fw-bold text-success">{{ pending_services|length }}</h5><p class="text-muted mb-0">Room Services</p></div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="/employees/" class="text-decoration-none d-block h-100">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body text-center"><h5 class="card-title h4 mb-1 fw-bold text-warning">{{ total_employees }}</h5><p class="text-muted mb-0">Staff Count</p></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="/add-room/" class="btn btn-primary">Add Room</a>
+    <a href="{% url 'createEvent' %}" class="btn btn-success">New Event</a>
+    <a href="/employees/" class="btn btn-outline-secondary">Manage Staff</a>
+  </div>
+
+  <!-- Recent Activity: 2 columns -->
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light"><h5 class="mb-0 fw-bold">Recent Bookings</h5></div>
+        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Room</th><th>Guest</th><th>Start</th><th>End</th></tr></thead><tbody>
+        {% for b in active_bookings %}<tr><td>{{ b.roomNumber.number }}</td><td>{{ b.guest.user.first_name }}</td><td>{{ b.startDate }}</td><td>{{ b.endDate }}</td></tr>{% empty %}<tr><td colspan="4" class="text-center text-muted py-3">No bookings.</td></tr>{% endfor %}
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light"><h5 class="mb-0 fw-bold">Room Service Requests</h5></div>
+        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Guest</th><th>Room</th><th>Type</th><th>Created</th></tr></thead><tbody>
+        {% for rs in pending_services %}<tr><td>{{ rs.curBooking.guest.user.first_name }}</td><td>{{ rs.room.number }}</td><td><span class="badge bg-secondary">{{ rs.servicesType }}</span></td><td>{{ rs.createdDate }}</td></tr>{% empty %}<tr><td colspan="4" class="text-center text-muted py-3">No requests.</td></tr>{% endfor %}
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>document.getElementById('live-date').textContent = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});</script>
+{% endblock %}

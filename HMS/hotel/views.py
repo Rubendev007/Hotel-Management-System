@@ -23,6 +23,8 @@ def home(request):
         return render(request, "landing.html")
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role == "admin" or role == "manager":
+        return redirect('admin-dashboard')
     if role != "guest":
         return redirect("employee-profile", pk=request.user.id)
     else:
@@ -519,3 +521,21 @@ def guest_dashboard(request):
     context = {"role":role,"guest":request.user,"active":active,"past_count":past.count() if hasattr(past,"count") else len(past),"events":events}
     path = role + "/" if role else "guest/"
     return render(request, path + "guest-dashboard.html", context)
+
+@login_required(login_url='login')
+def admin_dashboard(request):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ("admin", "manager"):
+        return redirect('home')
+    from room.models import Room, Booking, RoomServices
+    from django.contrib.auth.models import User
+    from hotel.models import Employee
+    context = {
+        "role": role,
+        "total_rooms": Room.objects.count(),
+        "active_bookings": Booking.objects.all().order_by('-id')[:5],
+        "pending_services": RoomServices.objects.all().order_by('-id')[:5],
+        "total_employees": User.objects.filter(groups__name__in=["manager","admin","receptionist"]).count() + Employee.objects.count(),
+    }
+    return render(request, "admin/admin-dashboard.html", context)

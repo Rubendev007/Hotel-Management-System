@@ -114,6 +114,9 @@ def login_page(request):
                 if user.groups.filter(name='guest').exists():
                     return redirect('guest-dashboard')
                 else:
+                    # Admin/manager dashboard; others keep profile redirect
+                    if user.groups.filter(name__in=['admin','manager']).exists():
+                        return redirect('admin-dashboard')
                     return redirect('home')
             else:
                 messages.info(request, "Username or Password is incorrect")
