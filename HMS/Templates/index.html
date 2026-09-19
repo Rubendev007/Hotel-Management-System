@@ -1,6 +1,6 @@
 {% include 'incs/head.html' %}
 
-<body>
+<body class="d-flex flex-column min-vh-100">
     {% include 'incs/nav.html' %}
 
     <style>
@@ -16,12 +16,14 @@
         }
     </style>
 
-    {% block context %}
+    <main class="flex-grow-1">
+{% block context %}
 
 
     {% endblock %}
 
 
+    </main>
     {% include 'incs/footer.html' %}
 
 </body>

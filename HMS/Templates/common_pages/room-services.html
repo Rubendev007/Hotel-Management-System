@@ -1,45 +1,41 @@
-<div class="container py-5">
-
-    <div class="table-responsive">
-        <div class="table-header row">
-
-            <div class="col-sm-12 col-md-12 col-lg-4 mb-4">
-                <h2>Room Services</h2>
-                <span class="text-muted">The list include last 1 month room services</span>
-            </div>
-
-        </div>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <form action="" method="POST">
-                        {% csrf_token %}
-                        <th>Guest Name<input type="text" class="form-control border border-secondary"></th>
-                        <th>Room Number<input type="text" class="form-control border border-secondary"></th>
-                        <th>Type<input type="text" class="form-control border border-secondary"></th>
-                        <th>Created Date<input type="date" class="form-control border border-secondary"></th>
-                        <th>Price<input type="text" class="form-control border border-secondary"></th>
-                        <th><button type="submit" class="btn btn-warning">Filter</button></th>
-                    </form>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rs in room_services %}
-                <tr>
-                    <td><a
-                            href="{% url 'guest-profile' rs.curBooking.guest.user.id %}">{{rs.curBooking.guest.user.first_name}}</a>
-                    </td>
-                    <td><a href="{% url 'room-profile' rs.room.number }">{{rs.room.number}}</a></td>
-                    <td>{{rs.servicesType}}</td>
-                    <td>{{rs.createdDate}}</td>
-                    <td>{{rs.price}}</td>
-                    <td> <a href="" class="btn btn-sm btn-danger px-3">Delete</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-        </table>
-
+<div class="container py-4 flex-grow-1">
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between">
+      <div><h2 class="h5 mb-0 fw-bold">Room Services</h2><span class="text-muted small">Last 1 month</span></div>
     </div>
-
+    <div class="card-body">
+      <form action="" method="POST" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-md-2"><label class="form-label small">Guest</label><input type="text" name="guest" class="form-control" placeholder="Guest"></div>
+        <div class="col-md-2"><label class="form-label small">Room</label><input type="text" name="room" class="form-control" placeholder="Room"></div>
+        <div class="col-md-2"><label class="form-label small">Type</label><input type="text" name="type" class="form-control" placeholder="Type"></div>
+        <div class="col-md-2"><label class="form-label small">Created</label><input type="date" name="date" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label small">Price</label><input type="text" name="price" class="form-control" placeholder="Price"></div>
+        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Filter</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light"><tr><th>Guest</th><th>Room</th><th>Type</th><th>Created</th><th>Price</th><th>Delete</th></tr></thead>
+          <tbody>
+            {% for rs in room_services %}
+            <tr>
+              <td><a href="{% url 'guest-profile' rs.curBooking.guest.user.id %}" class="text-decoration-none">{{ rs.curBooking.guest.user.first_name }}</a></td>
+              <td><a href="{% url 'room-profile' rs.room.number %}" class="text-decoration-none">{{ rs.room.number }}</a></td>
+              <td><span class="badge bg-secondary">{{ rs.servicesType }}</span></td>
+              <td>{{ rs.createdDate }}</td>
+              <td>{{ rs.price }}</td>
+              <td><a href="" class="btn btn-sm btn-outline-danger">Delete</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center py-4 text-muted">No services.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>

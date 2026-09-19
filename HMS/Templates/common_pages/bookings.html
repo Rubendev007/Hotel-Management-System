@@ -1,63 +1,50 @@
-<div class="container py-5">
-
-
-    <div class="table-header row">
-
-        <div class="col-sm-12 col-md-12 col-lg-4 mb-4">
-            <h2>Bookings List</h2>
-        </div>
-
+<div class="container py-4 flex-grow-1">
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between">
+      <h2 class="h5 mb-0 fw-bold">Bookings List</h2>
     </div>
+    <div class="card-body">
+      <form action="" method="POST" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-md-2"><label class="form-label small text-muted">Room</label><input type="number" min="0" name="number" value="{{number|default:''}}" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label small text-muted">Guest</label><input type="text" name="name" value="{{name|default:''}}" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label small text-muted">Reserved</label><input type="date" name="rez" value="{{rez|default:''}}" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label small text-muted">Start</label><input type="date" name="fd" value="{{fd|default:''}}" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label small text-muted">End</label><input type="date" name="ed" value="{{ed|default:''}}" class="form-control"></div>
+        <div class="col-md-2"><button type="submit" name="filter" class="btn btn-primary w-100">Filter</button></div>
+      </form>
+    </div>
+  </div>
 
-    <table class="table table-hover table-striped">
-        <thead class="bg-secondary rounded">
-            <tr>
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    <th>Room Number<input type="number" min="0" name="number" value="{{number}}"
-                            class="form-control border border-secondary"></th>
-                    <th>Guest Name<input type="text" name="name" value="{{name}}"
-                            class="form-control border border-secondary"></th>
-                    <th>Date Of Reservation<input type="date" name="rez" value="{{rez}}"
-                            class="form-control border border-secondary"></th>
-                    <th>Start Day<input type="date" name="fd" value="{{fd}}"
-                            class="form-control border border-secondary"></th>
-                    <th>End Day<input type="date" name="ed" value="{{ed}}" class="form-control border border-secondary">
-                    </th>
-                    <th class="pb-5">Number of Dependees</th>
-                    <th class="pb-5">Total amount</th>
-                    <th><button type="submit" name="filter" class="btn btn-warning w-100">Filter</button></th>
-                </form>
-
-            </tr>
-
-        </thead>
-        <tbody>
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light"><tr><th>Room</th><th>Guest</th><th>Reserved</th><th>Start</th><th>End</th><th>Dependees</th><th>Total</th><th>Action</th></tr></thead>
+          <tbody>
             {% for b in bookings %}
             <tr>
-                <td><a href="{% url 'room-profile' b.roomNumber.number %}">{{b.roomNumber.number}}</a></td>
-                <td><a href="{% url 'guest-profile' b.guest.user.id %}">{{b.guest.user.first_name}}</a></td>
-                <td>{{ b.dateOfReservation }}</td>
-                <td>{{ b.startDate }}</td>
-                <td>{{ b.endDate }}</td>
-                <td>{{ b.numOfDep }}</td>
-                <td>
-                    {% for key, value in totals.items %}
-                    {% if key == b %}
-                    {{ value }}
-                    {% endif %}
-                    {% endfor %}
-                </td>
+              <td><a href="{% url 'room-profile' b.roomNumber.number %}">{{ b.roomNumber.number }}</a></td>
+              <td><a href="{% url 'guest-profile' b.guest.user.id %}">{{ b.guest.user.first_name }}</a></td>
+              <td>{{ b.dateOfReservation }}</td>
+              <td>{{ b.startDate }}</td>
+              <td>{{ b.endDate }}</td>
+              <td><span class="badge bg-secondary">{{ b.numOfDep }}</span></td>
+              <td>
+                {% for key, value in totals.items %}{% if key == b %}{{ value }}{% endif %}{% endfor %}
+              </td>
+              <td>
                 {% if role == "admin" or role == 'manager' %}
-                <td> <a href="{% url 'deleteBooking' b.id %}"
-                        class="btn btn-sm btn-outline-danger">Delete&nbsp;Booking</a></td>
+                <a href="{% url 'deleteBooking' b.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
                 {% endif %}
+              </td>
             </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center py-4 text-muted">No bookings.</td></tr>
             {% endfor %}
-        </tbody>
-
-    </table>
-
-
-
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
