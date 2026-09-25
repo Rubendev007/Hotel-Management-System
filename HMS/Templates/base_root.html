@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Django Hotel Management System{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="root">
+  <main id="content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <p>© {% now "Y" %} Hotel Management System. All rights reserved.</p>
+    </div>
+  </footer>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

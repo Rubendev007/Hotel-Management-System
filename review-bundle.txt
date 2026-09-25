@@ -1,0 +1,91 @@
+===== base_root.html =====
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Django Hotel Management System{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="root">
+  <header class="site-header" role="banner">
+    <div class="container">
+      {% include 'incs/nav.html' %}
+    </div>
+  </header>
+  <main id="content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <p>© {% now "Y" %} Hotel Management System. All rights reserved.</p>
+    </div>
+  </footer>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+===== base_admin.html =====
+{% extends "base_root.html" %}
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar" role="navigation" aria-label="Admin sidebar">
+    <nav>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'guests' %}">Guests</a>
+      <a href="{% url 'employees' %}">Employees</a>
+      <a href="{% url 'bookings' %}">Bookings</a>
+      <a href="{% url 'rooms' %}">Rooms</a>
+      <a href="{% url 'announcements' %}">Announcements</a>
+      <a href="{% url 'refunds' %}">Refunds</a>
+    </nav>
+  </aside>
+  <section class="admin-main" role="main">
+    {% block admin_content %}{% endblock %}
+  </section>
+</div>
+{% endblock %}
+
+===== base_guest.html =====
+{% extends "base_root.html" %}
+{% block content %}
+<nav class="guest-top-nav" aria-label="Guest navigation">
+  <a href="{% url 'home' %}">Home</a>
+  <a href="{% url 'rooms' %}">Book Room</a>
+  <a href="{% url 'announcements' %}">Announcements</a>
+  <a href="{% url 'events' %}">Events</a>
+  <a href="{% url 'current-room-services' %}">Services</a>
+</nav>
+<section class="guest-content">
+  {% block guest_content %}{% endblock %}
+</section>
+{% endblock %}
+
+===== tokens.css =====
+:root {
+  --primary: #0a2540;
+  --primary-light: #1a3a5c;
+  --primary-dark: #051b30;
+  --accent: #c5a065;
+  --accent-soft: #e8dcc8;
+  --surface: #f7f5f2;
+  --surface-card: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --text-subtle: #9a9a9a;
+  --border: #e0dbd4;
+  --success: #2d6a3f;
+  --warning: #b07d1a;
+  --danger: #8b2e2e;
+  --shadow-sm: 0 1px 3px rgba(10, 37, 64, 0.06);
+  --shadow-md: 0 4px 12px rgba(10, 37, 64, 0.08);
+  --shadow-lg: 0 12px 32px rgba(10, 37, 64, 0.10);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: Georgia, "Times New Roman", serif;
+}

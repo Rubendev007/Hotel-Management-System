@@ -1,0 +1,13 @@
+{% extends "base_root.html" %}
+{% block content %}
+<nav class="guest-top-nav" aria-label="Guest navigation">
+  <a href="{% url 'home' %}">Home</a>
+  <a href="{% url 'rooms' %}">Book Room</a>
+  <a href="{% url 'announcements' %}">Announcements</a>
+  <a href="{% url 'events' %}">Events</a>
+  <a href="{% url 'current-room-services' %}">Services</a>
+</nav>
+<section class="guest-content">
+  {% block guest_content %}{% endblock %}
+</section>
+{% endblock %}
