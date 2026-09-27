@@ -319,6 +319,8 @@ def employee_details(request, pk):
 
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role == 'receptionist':
+        return redirect('rooms')
     path = role + "/"
 
     tempUser = User.objects.get(id=pk)

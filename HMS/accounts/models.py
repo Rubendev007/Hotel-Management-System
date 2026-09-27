@@ -44,11 +44,26 @@ class Employee(models.Model):
 
 
 class Task(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+    CATEGORY_CHOICES = [
+        ('cleaning', 'Housekeeping / Cleaning'),
+        ('food', 'In-Room Dining / Food Order'),
+        ('maintenance', 'Technical / Maintenance'),
+        ('general', 'General Task'),
+    ]
     employee = models.ForeignKey(
-        Employee,   null=True, on_delete=models.CASCADE)
-    startTime = models.DateTimeField()
-    endTime = models.DateTimeField()
+        Employee, null=True, on_delete=models.CASCADE)
+    startTime = models.DateTimeField(auto_now_add=True)
+    endTime = models.DateTimeField(null=True, blank=True)
     description = models.TextField()
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending')
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default='general')
 
-    def str(self):
+    def __str__(self):
         return str(self.employee)

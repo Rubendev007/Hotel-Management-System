@@ -1,6 +1,141 @@
 {% extends '../index.html' %}
 {% block context %}
 
-{% include '../common_pages/rooms.html' %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+:root{--surface-card:#111827;--text:#f3f4f6;--text-muted:#9ca3af;--border:#374151;--radius-md:12px;--shadow-lg:0 20px 40px rgba(0,0,0,0.45);--primary:#6366f1;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--indigo:#6366f1;}
+.dark-console{font-family:'Inter',system-ui,sans-serif;background:#0b0f19;color:#f3f4f6;min-height:100vh;}
+.room-grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
+.room-card{background:linear-gradient(135deg,#111827 0%,#0f1222 100%);border:1px solid #374151;border-radius:16px;padding:1.25rem;box-shadow:var(--shadow-lg);transition:transform .15s ease,border-color .15s ease;display:flex;flex-direction:column;}
+.room-card:hover{transform:translateY(-4px);border-color:#6366f1;}
+.room-card.green{border-left:4px solid #10b981;}
+.room-card.red{border-left:4px solid #ef4444;}
+.room-card.amber{border-left:4px solid #f59e0b;}
+.room-card.indigo{border-left:4px solid #6366f1;}
+.badge{display:inline-block;padding:.25em .6em;border-radius:.5rem;font-size:.75rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
+.badge-green{background:#064e3b;color:#34d399;border:1px solid #10b981;}
+.badge-red{background:#450a0a;color:#f87171;border:1px solid #ef4444;}
+.badge-amber{background:#78350f;color:#fbbf24;border:1px solid #f59e0b;}
+.badge-indigo{background:#312e81;color:#818cf8;border:1px solid #6366f1;}
+.action-row{display:flex;gap:.5rem;margin-top:auto;padding-top:1rem;border-top:1px solid #374151;}
+.action-row .btn{flex:1;font-size:.85rem;padding:.45rem .6rem;border-radius:.5rem;border:none;font-weight:600;cursor:pointer;transition:filter .15s;}
+.action-row .btn:hover{filter:brightness(1.15);}
+.toolbar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem;padding:1rem 1.25rem;background:#111827;border:1px solid #374151;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.35);}
+.toolbar input,.toolbar select{background:#0b0f19;border:1px solid #374151;color:#f3f4f6;border-radius:8px;padding:.4rem .6rem;font-size:.9rem;outline:none;}
+.toolbar button{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:.4rem .8rem;font-weight:600;font-size:.9rem;cursor:pointer;}
+.modal-overlay{position:fixed;z-index:1050;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.active{opacity:1;pointer-events:auto;}
+.modal-card{background:#111827;border:1px solid #374151;border-radius:16px;padding:2rem;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,.6);transform:translateY(10px);transition:transform .2s;}
+.modal-overlay.active .modal-card{transform:translateY(0);}
+.modal-card h3{margin-top:0;font-weight:800;color:#f3f4f6;}
+.modal-card label{display:block;font-weight:600;font-size:.8rem;color:#9ca3af;margin:.6rem 0 .2rem;}
+.modal-card input,.modal-card select{width:100%;padding:.5rem .7rem;border:1px solid #374151;border-radius:8px;background:#0b0f19;color:#f3f4f6;font-size:.9rem;}
+.modal-actions{display:flex;gap:.5rem;margin-top:1rem;}
+.modal-actions button{flex:1;padding:.55rem;border-radius:8px;border:none;font-weight:700;cursor:pointer;}
+.modal-actions .btn-secondary{background:#374151;color:#f3f4f6;}
+.modal-actions .btn-primary{background:#6366f1;color:#fff;}
+</style>
+
+<div class="dark-console py-5 px-3">
+<div class="container" style="max-width:1200px;">
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h1 class="m-0" style="font-weight:800;font-family:'Inter';color:#f3f4f6;letter-spacing:-.02em;">Receptionist Console <span style="font-size:.7rem;color:#6366f1;background:#312e81;padding:.2rem .55rem;border-radius:30px;margin-left:.5rem;">DARK SAAS</span></h1>
+<button class="btn btn-sm" style="background:#6366f1;color:#fff;font-weight:700;border:none;border-radius:8px;padding:.5rem 1rem;" onclick="document.getElementById('checkin-modal').classList.add('active')">+ Express Check-In</button>
+</div>
+
+<!-- Search / Filter Toolbar -->
+<div class="toolbar">
+<input type="text" id="guestFilter" placeholder="Guest name / Room #..." oninput="filterRooms()">
+<select id="typeFilter" onchange="filterRooms()">
+<option value="">All Types</option>
+<option>King</option><option>Luxury</option><option>Normal</option><option>Economic</option>
+</select>
+<select id="statusFilter" onchange="filterRooms()">
+<option value="">All Status</option>
+<option>Available</option><option>Occupied</option><option>Cleaning / Maintenance</option><option>Reserved</option>
+</select>
+</div>
+
+<!-- Room Grid -->
+<div class="room-grid" id="roomGrid">
+{% for r in rooms %}
+{% if r.status_start and r.status_start <= today and r.status_end and r.status_end >= today %}
+  {% with status_label="Occupied" status_cls="red" badge_cls="badge-red" %}
+  <div class="room-card red" data-type="{{ r.roomType }}" data-status="Occupied" data-guest="{% if r.booking_set.all.last %}{{ r.booking_set.all.last.guest.user.username }}{% else %}none{% endif %}">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <span class="badge {{ badge_cls }}">{{ status_label }}</span>
+      <h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2>
+    </div>
+    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }} · Beds: {{ r.numberOfBeds }} · ${{ r.price }}/night</p>
+    <div style="font-size:.8rem;color:#6b7280;margin-bottom:.75rem;">
+      <i class="fas fa-user mr-1"></i>{% with b=r.booking_set.all.last %}{% if b and b.guest %}{{ b.guest.user.username }}{% else %}—{% endif %}{% endwith %}
+    </div>
+    <div class="action-row">
+      <a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Guest</a>
+      <button class="btn btn-outline-success" onclick="requestCleaning({{ r.number }})">Cleaning</button>
+    </div>
+  </div>
+  {% endwith %}
+{% elif r.status_start and r.status_end and r.status_end < today %}
+  <div class="room-card amber" data-type="{{ r.roomType }}" data-status="Cleaning / Maintenance" data-guest="none">
+    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-amber">Cleaning / Maintenance</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
+    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }} · Beds: {{ r.numberOfBeds }} · ${{ r.price }}/night</p>
+    <div class="action-row"><button class="btn btn-outline-success" onclick="requestCleaning({{ r.number }})">Request Cleaning</button></div>
+  </div>
+{% elif r.status_start and r.status_start > today %}
+  <div class="room-card indigo" data-type="{{ r.roomType }}" data-status="Reserved" data-guest="none">
+    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-indigo">Reserved</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
+    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }} · Beds: {{ r.numberOfBeds }} · ${{ r.price }}/night</p>
+    <div class="action-row"><a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Details</a></div>
+  </div>
+{% else %}
+  <div class="room-card green" data-type="{{ r.roomType }}" data-status="Available" data-guest="none">
+    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-green">Available</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
+    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }} · Beds: {{ r.numberOfBeds }} · ${{ r.price }}/night</p>
+    <div class="action-row"><button class="btn btn-outline-primary" onclick="checkInModal({{ r.number }})">Check-In</button><a href="{% url 'room-detail' r.number %}" class="btn btn-outline-secondary">View</a></div>
+  </div>
+{% endif %}
+{% endfor %}
+</div>
+
+</div>
+
+<!-- Express Check-In Modal -->
+<div class="modal-overlay" id="checkin-modal" onclick="if(event.target===this)this.classList.remove('active')">
+<div class="modal-card">
+<h3>Express Check-In</h3>
+<form method="post" action="">{% csrf_token %}
+<label>Guest Name</label><input type="text" name="guest_name" placeholder="Full name" required>
+<label>Room Type Preference</label><select name="room_type"><option>King</option><option>Luxury</option><option>Normal</option><option>Economic</option></select>
+<label>Start Date</label><input type="date" name="start_date" value="{{ today|date:'Y-m-d' }}" required>
+<label>End Date</label><input type="date" name="end_date" value="{{ tomorrow|date:'Y-m-d' }}" required>
+<div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('checkin-modal').classList.remove('active')">Cancel</button><button type="submit" class="btn-primary">Confirm Check-In</button></div>
+</form>
+</div>
+</div>
+
+</div>
+
+<script>
+function filterRooms(){
+  const gu=document.getElementById('guestFilter').value.toLowerCase();
+  const ty=document.getElementById('typeFilter').value;
+  const st=document.getElementById('statusFilter').value;
+  document.querySelectorAll('.room-card').forEach(c=>{
+    const okG=!gu||c.getAttribute('data-guest').toLowerCase().includes(gu);
+    const okT=!ty||c.getAttribute('data-type')===ty;
+    const okS=!st||c.getAttribute('data-status')===st;
+    c.style.display=(okG&&okT&&okS)?'flex':'none';
+  });
+}
+function checkInModal(num){document.getElementById('checkin-modal').classList.add('active');}
+function requestCleaning(num){alert('Cleaning request sent for Room '+num);}
+</script>
 
 {% endblock %}

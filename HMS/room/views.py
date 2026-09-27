@@ -95,11 +95,14 @@ def rooms(request):
             }
             return render(request, path + "rooms.html", context)
 
+    from datetime import date as dt
     context = {
         "role": role,
         'rooms': rooms,
         'fd': firstDayStr,
-        'ld': lastDateStr
+        'ld': lastDateStr,
+        'today': dt.today(),
+        'tomorrow': dt.today() + __import__('datetime').timedelta(days=1)
     }
     return render(request, path + "rooms.html", context)
 
