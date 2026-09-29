@@ -3,7 +3,7 @@
 <div class="container py-5">
     {% if messages %}
     <div class="alert alert-warning">
-        {{ messages|first }}
+        {% for message in messages %}{{ message }}{% endfor %}
     </div>
     {% endif %}
 
@@ -62,9 +62,11 @@
                     <form action="{% url 'booking-make' %}" method="POST">
                         {% csrf_token %}
                         <input type="hidden" value="{{ room.number }}" name="roomid">
-                        <input type="hidden" value="{{ fd|default:'' }}" name="fd">
-                        <input type="hidden" value="{{ ld|default:'' }}" name="ld">
-                        <button type="submit" name="book" class="btn btn-primary btn-lg w-100">Book This Room</button>
+                        <label>Check-In Date</label>
+                        <input type="date" class="form-control" name="fd" value="{{ fd|default:'' }}" min="2026-01-01" max="2035-12-31" required>
+                        <label class="mt-2">Check-Out Date</label>
+                        <input type="date" class="form-control" name="ld" value="{{ ld|default:'' }}" min="2026-01-01" max="2035-12-31" required>
+                        <button type="submit" name="book" class="btn btn-primary btn-lg w-100 mt-3">Book This Room</button>
                     </form>
                 </div>
             </div>

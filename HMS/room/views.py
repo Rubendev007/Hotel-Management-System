@@ -54,6 +54,67 @@ def rooms(request):
         return availableRooms
 
     if request.method == "POST":
+        if "guest_name" in request.POST:
+            # Express Check-In
+            room_number = request.POST.get("room_number")
+            guest_name = request.POST.get("guest_name", "").strip()
+            guest_email = request.POST.get("guest_email", "").strip()
+            guest_phone = request.POST.get("guest_phone", "").strip()
+
+            # Validate room exists
+            try:
+                room = Room.objects.get(number=room_number)
+            except (Room.DoesNotExist, TypeError, ValueError):
+                messages.error(request, "Please select a valid room.")
+                return redirect("rooms")
+
+            # Validate room is NOT already occupied (ONLY by active Booking records)
+            today = date.today()
+            is_booked = Booking.objects.filter(
+                roomNumber=room,
+                startDate__lte=today,
+                endDate__gte=today
+            ).exists()
+            if is_booked:
+                messages.warning(request, f"Room {room.number} is currently unavailable — it is already occupied.")
+                return redirect("rooms")
+
+            # Get or create Guest profile
+            guest = None
+            if guest_email:
+                user = User.objects.filter(email=guest_email).first()
+                if user:
+                    guest = Guest.objects.filter(user=user).first()
+            if not guest and guest_name:
+                user = User.objects.filter(username=guest_name).first()
+                if user:
+                    guest = Guest.objects.filter(user=user).first()
+            if not guest:
+                username_slug = guest_name.lower().replace(" ", "_")
+                user, created = User.objects.get_or_create(
+                    username=username_slug,
+                    defaults={'first_name': guest_name, 'email': guest_email}
+                )
+                if not created and not user.email and guest_email:
+                    user.email = guest_email
+                    user.save(update_fields=['email'])
+                if not user.first_name:
+                    user.first_name = guest_name
+                    user.save(update_fields=['first_name'])
+                guest = Guest.objects.filter(user=user).first()
+                if not guest:
+                    guest = Guest.objects.create(user=user, phoneNumber=guest_phone or "+0000000000")
+
+            sd = datetime.strptime(request.POST.get("check_in", str(today)), '%Y-%m-%d').date()
+            ed = datetime.strptime(request.POST.get("check_out", str(today + timedelta(days=1))), '%Y-%m-%d').date()
+
+            room.statusStartDate = sd
+            room.statusEndDate = ed
+            room.save()
+            Booking.objects.create(roomNumber=room, guest=guest, startDate=sd, endDate=ed, total_price=room.price or 0)
+            messages.success(request, f"Checked in {guest_name} to Room {room.number}.")
+            return redirect("rooms")
+
         if "dateFilter" in request.POST:
             firstDayStr = request.POST.get("fd", "")
             lastDateStr = request.POST.get("ld", "")
@@ -96,13 +157,16 @@ def rooms(request):
             return render(request, path + "rooms.html", context)
 
     from datetime import date as dt
+    today = dt.today()
+    active_booking_ids = list(Booking.objects.filter(startDate__lte=today, endDate__gte=today).values_list('roomNumber_id', flat=True))
     context = {
         "role": role,
         'rooms': rooms,
         'fd': firstDayStr,
         'ld': lastDateStr,
-        'today': dt.today(),
-        'tomorrow': dt.today() + __import__('datetime').timedelta(days=1)
+        'today': today,
+        'tomorrow': today + __import__('datetime').timedelta(days=1),
+        'active_booking_ids': active_booking_ids,
     }
     return render(request, path + "rooms.html", context)
 
@@ -233,20 +297,33 @@ def room_detail(request, pk):
     }
     room_amenities = amenities.get(room.roomType, [])
 
+    from django.utils import timezone
+    from django.utils import timezone
     import datetime
-    today = datetime.date.today()
+    today = timezone.now().date()
     fd = request.GET.get('fd') or str(today)
     ld = request.GET.get('ld') or str(today + datetime.timedelta(days=2))
-    if room.statusStartDate and room.statusEndDate:
-        is_available = not (room.statusStartDate <= today <= room.statusEndDate)
-    else:
+
+    # Active booking check using actual Booking fields (startDate/endDate)
+    has_active_booking = Booking.objects.filter(
+        roomNumber=room,
+        startDate__lte=today,
+        endDate__gte=today
+    ).exists()
+    is_occupied = has_active_booking
+
+    # If no active booking, treat as available regardless of DB status fields
+    if not has_active_booking:
         is_available = True
+    else:
+        is_available = False
 
     context = {
         "role": role,
         "room": room,
         "amenities": room_amenities,
         "is_available": is_available,
+        "is_occupied": is_occupied,
         "fd": fd,
         "ld": ld,
     }
