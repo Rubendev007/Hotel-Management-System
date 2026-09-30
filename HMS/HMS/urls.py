@@ -68,6 +68,7 @@ urlpatterns = [
     path('payment/', payment, name="payment"),
     path('verify/', verify, name="verify"),
 
+    path('checkout/<str:pk>/', checkout, name='checkout'),
     path('deleteStorage/<str:pk>/', deleteStorage, name="deleteStorage"),
     path('deleteFoodMenu/<str:pk>/', deleteFoodMenu, name="deleteFoodMenu"),
     path('food-menu/', food_menu, name="food-menu"),

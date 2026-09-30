@@ -1,6 +1,17 @@
 {% extends '../index.html' %}
 {% block context %}
 
+{% if messages %}
+<div class="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 400px;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 :root{--surface-card:#111827;--text:#f3f4f6;--text-muted:#9ca3af;--border:#374151;--radius-md:12px;--shadow-lg:0 20px 40px rgba(0,0,0,0.45);--primary:#6366f1;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--indigo:#6366f1;}
@@ -76,6 +87,7 @@
     <div class="action-row">
       <a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Guest</a>
       <button class="btn btn-outline-success" onclick="requestCleaning({{ r.number }})">Cleaning</button>
+      <a href="{% url 'checkout' r.number %}" class="btn btn-outline-danger">Check Out</a>
     </div>
   </div>
   {% endwith %}

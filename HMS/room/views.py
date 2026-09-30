@@ -108,6 +108,16 @@ def rooms(request):
             sd = datetime.strptime(request.POST.get("check_in", str(today)), '%Y-%m-%d').date()
             ed = datetime.strptime(request.POST.get("check_out", str(today + timedelta(days=1))), '%Y-%m-%d').date()
 
+            # Date overlap validation — prevent double booking
+            overlapping = Booking.objects.filter(
+                roomNumber=room,
+                startDate__lt=ed,
+                endDate__gt=sd
+            ).exists()
+            if overlapping:
+                messages.error(request, "Room is already booked for the selected dates.")
+                return redirect("rooms")
+
             room.statusStartDate = sd
             room.statusEndDate = ed
             room.save()
@@ -158,6 +168,7 @@ def rooms(request):
 
     from datetime import date as dt
     today = dt.today()
+    # Dynamic status: occupied if active booking exists today
     active_booking_ids = list(Booking.objects.filter(startDate__lte=today, endDate__gte=today).values_list('roomNumber_id', flat=True))
     context = {
         "role": role,
@@ -297,26 +308,34 @@ def room_detail(request, pk):
     }
     room_amenities = amenities.get(room.roomType, [])
 
-    from django.utils import timezone
-    from django.utils import timezone
-    import datetime
+    # Dynamic status evaluator based on active Booking
     today = timezone.now().date()
-    fd = request.GET.get('fd') or str(today)
-    ld = request.GET.get('ld') or str(today + datetime.timedelta(days=2))
-
-    # Active booking check using actual Booking fields (startDate/endDate)
-    has_active_booking = Booking.objects.filter(
-        roomNumber=room,
-        startDate__lte=today,
-        endDate__gte=today
+    has_active = Booking.objects.filter(
+        roomNumber=room, startDate__lte=today, endDate__gte=today
     ).exists()
-    is_occupied = has_active_booking
 
-    # If no active booking, treat as available regardless of DB status fields
-    if not has_active_booking:
-        is_available = True
-    else:
-        is_available = False
+    # Overlap validation for new bookings (used when posting from room-detail)
+    if request.method == "POST" and ("book" in request.POST or "fd" in request.POST):
+        # Hard block: reject booking if room currently occupied
+        if has_active:
+            messages.error(request, "This room is currently occupied. Please check out the current guest first before booking.")
+            return redirect("room-detail", pk=pk)
+        try:
+            sd = datetime.strptime(request.POST.get("fd", str(today)), "%Y-%m-%d").date()
+            ed = datetime.strptime(request.POST.get("ld", str(today + timedelta(days=2))), "%Y-%m-%d").date()
+            overlapping = Booking.objects.filter(
+                roomNumber=room, startDate__lt=ed, endDate__gt=sd
+            ).exists()
+            if overlapping:
+                messages.error(request, "Room is already booked for the selected dates.")
+                return redirect("room-detail", pk=pk)
+        except (ValueError, TypeError):
+            pass
+
+    is_occupied = has_active
+    is_available = not has_active
+    fd = request.GET.get('fd') or str(today)
+    ld = request.GET.get('ld') or str(today + timedelta(days=2))
 
     context = {
         "role": role,
@@ -750,6 +769,33 @@ def request_refund(request):
     }
 
     return render(request, path + "request-refund.html", context)
+
+@login_required(login_url='login')
+def checkout(request, pk):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ('manager', 'admin', 'receptionist', 'guest'):
+        return redirect('rooms')
+    room = Room.objects.get(number=pk)
+    from django.utils import timezone
+    from datetime import timedelta
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+
+    # Update active booking end date to yesterday so it is no longer active today
+    active_bookings = Booking.objects.filter(roomNumber=room, startDate__lte=today, endDate__gte=today)
+    for b in active_bookings:
+        b.endDate = yesterday
+        b.save()
+
+    # Reset static room fields as backup
+    room.status = 'available'
+    room.statusStartDate = None
+    room.statusEndDate = None
+    room.save()
+    messages.success(request, f"Checked out Room {room.number}.")
+    return redirect('rooms')
+
 
 @login_required(login_url='login')
 def delete_room(request, pk):
