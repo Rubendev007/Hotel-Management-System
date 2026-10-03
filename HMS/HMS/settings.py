@@ -129,6 +129,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+# CSRF settings
+CSRF_COOKIE_HTTPONLY = False
+CSRF_FAILURE_VIEW = 'room.views.csrf_failure'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/

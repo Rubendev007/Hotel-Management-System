@@ -72,7 +72,14 @@
 <!-- Room Grid -->
 <div class="room-grid" id="roomGrid">
 {% for r in rooms %}
-{% if r.number in active_booking_ids %}
+{% if r.status == 'cleaning' or r.status == 'dirty' %}
+  <div class="room-card amber" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Needs Cleaning" data-guest="none">
+    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-amber">Needs Cleaning</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
+    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
+    <div class="action-row"><a href="{% url 'mark-cleaned' r.number %}" class="btn btn-outline-warning">Mark Cleaned</a></div>
+  </div>
+{% elif r.number in active_booking_ids %}
   {% with status_label="Occupied" status_cls="red" badge_cls="badge-red" %}
   <div class="room-card red" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Occupied" data-guest="{% if r.booking_set.all.last %}{{ r.booking_set.all.last.guest.user.username }}{% else %}none{% endif %}">
     <div class="d-flex justify-content-between align-items-start mb-2">
@@ -86,25 +93,10 @@
     </div>
     <div class="action-row">
       <a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Guest</a>
-      <button class="btn btn-outline-success" onclick="requestCleaning({{ r.number }})">Cleaning</button>
       <a href="{% url 'checkout' r.number %}" class="btn btn-outline-danger">Check Out</a>
     </div>
   </div>
   {% endwith %}
-{% elif r.status_start and r.status_end and r.status_end < today %}
-  <div class="room-card amber" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Cleaning / Maintenance" data-guest="none">
-    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-amber">Cleaning / Maintenance</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
-    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
-    <div class="action-row"><button class="btn btn-outline-success" onclick="requestCleaning({{ r.number }})">Request Cleaning</button></div>
-  </div>
-{% elif r.status_start and r.status_start > today %}
-  <div class="room-card indigo" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Reserved" data-guest="none">
-    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-indigo">Reserved</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
-    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
-    <div class="action-row"><a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Details</a></div>
-  </div>
 {% else %}
   <div class="room-card green" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Available" data-guest="none">
     <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-green">Available</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
@@ -158,6 +150,7 @@ function filterRooms(){
 }
 function checkInModal(num){var sel=document.getElementById('roomSelect');if(sel){sel.value=num;}document.getElementById('checkin-modal').classList.add('active');}
 function requestCleaning(num){alert('Cleaning request sent for Room '+num);}
+function markCleaned(num){window.location.href="/mark-cleaned/"+num+"/";}
 </script>
 
 {% endblock %}

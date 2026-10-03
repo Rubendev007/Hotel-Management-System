@@ -21,13 +21,13 @@ class CreateUserForm(UserCreationForm):
 class CreateEmployeeForm(ModelForm):
     class Meta:
         model = Employee
-        fields = ['phoneNumber', 'salary']
+        fields = ["salary", "phoneNumber"]
 
 
 class editEmployee(ModelForm):
     class Meta:
         model = Employee
-        fields = ["phoneNumber", "salary"]
+        fields = ["salary"]
 
 
 class editUser(ModelForm):
@@ -47,6 +47,7 @@ class ROLES(forms.Form):
         ('manager', 'manager'),
         ('receptionist', 'receptionist'),
         ('staff', 'staff'),
+        ('housekeeping', 'Housekeeping'),
     ]
     ROLES_TYPES = forms.CharField(
         widget=forms.RadioSelect(choices=ROLES_TYPES))

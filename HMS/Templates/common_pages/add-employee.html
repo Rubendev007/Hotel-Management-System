@@ -35,7 +35,7 @@
 
                 <div class="form-group pt-3">
                     <label for="item-type"><b>Phone Number</b></label>
-                    <input type="tel" name="phoneNumber" pattern="[0-9]{10}" maxlength="10" id="id_phoneNumber"
+                    <input type="tel" name="phoneNumber" pattern="[0-9+]{10,20}" maxlength="20" id="id_phoneNumber"
                         class="form-control border border-secondary" placeholder="5*********" required>
                 </div>
 
@@ -71,6 +71,7 @@
 
             <label class="radio-inline mr-3 for=" id_ROLES_TYPES_2">
                 <input type="radio" name="ROLES_TYPES" value="staff" required id="id_ROLES_TYPES_2"> Staff
+            <label class="radio-inline mr-3 for=" id_ROLES_TYPES_3"><input type="radio" name="ROLES_TYPES" value="housekeeping" required id="id_ROLES_TYPES_3"> Housekeeping</label>
             </label>
 
 

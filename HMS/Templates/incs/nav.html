@@ -61,11 +61,14 @@
                         <a class="dropdown-item" href="{% url 'announcements'%}">Announcements</a>
                         <a class="dropdown-item" href="{% url 'food-menu'%}">Food Menu</a>
                         <a class="dropdown-item" href="{% url 'storage'%}">Storage</a>
+                        {% elif role == 'housekeeping' %}
+                        <a class="dropdown-item" href="{% url 'housekeeping_dashboard'%}">Dashboard</a>
+                        <a class="dropdown-item" href="{% url 'announcements'%}">Announcements</a>
                         {% endif %}
                     </div>
                 </li>
                 <li class="nav-item mr-3 p-2">
-                    {% if role == 'staff' or role == 'receptionist' or role == 'admin' or role == 'manager' %}
+                    {% if role == 'staff' or role == 'receptionist' or role == 'admin' or role == 'manager' or role == 'housekeeping' %}
                     <a href="{% url 'employee-profile' user.id %}" class="nav-link">Profile</a>
                     {% endif %}
                     {% if role == 'guest' %}

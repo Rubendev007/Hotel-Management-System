@@ -63,8 +63,11 @@ def add_employee(request):
     form3 = CreateEmployeeForm()
 
     if request.method == 'POST':
-        post = request.POST.copy()  # to make it mutable
-        post['phoneNumber'] = "+90" + post['phoneNumber']
+        post = request.POST.copy()  # mutable
+        # Keep user's international format as-is if already starts with +, else prepend +
+        raw_phone = post.get("phoneNumber", "").strip()
+        if raw_phone and not raw_phone.startswith('+'):
+            post["phoneNumber"] = '+' + raw_phone
         request.POST = post
 
         form = CreateUserForm(request.POST)
@@ -73,20 +76,25 @@ def add_employee(request):
 
         if form.is_valid() and form2.is_valid() and form3.is_valid():
             user = form.save()
+            raw_phone = request.POST.get("phoneNumber", "").strip()
             employee = form3.save()
             employee.user = user
+            employee.phoneNumber = raw_phone if raw_phone else '+12125552368'
             employee.save()
 
             username = form.cleaned_data.get('username')
 
             role = form2.cleaned_data.get("ROLES_TYPES")
 
-            group = Group.objects.get(name=role)
+            group_name = role
+            group, created = Group.objects.get_or_create(name=group_name)
             user.groups.add(group)
 
             messages.success(
                 request, role + ' Account Was Created Succesfuly For ' + username)
 
+            if role == 'housekeeping':
+                return redirect('housekeeping_dashboard')
             return redirect('employees')
 
     context = {
@@ -113,6 +121,8 @@ def login_page(request):
                 # Post-login navigation: guests to room list, others to profile
                 if user.groups.filter(name='guest').exists():
                     return redirect('guest-dashboard')
+                elif user.groups.filter(name='housekeeping').exists():
+                    return redirect('housekeeping_dashboard')
                 else:
                     # Admin/manager dashboard; others keep profile redirect
                     if user.groups.filter(name__in=['admin','manager']).exists():
@@ -425,6 +435,8 @@ def tasks(request):
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     path = role + "/"
+    if role == 'housekeeping':
+        path = 'staff/'
 
     tempEmp = Employee.objects.get(user=request.user)
     tasks = Task.objects.filter(employee=tempEmp)

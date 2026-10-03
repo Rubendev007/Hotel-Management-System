@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from accounts.views import *
 from room.views import *
+from room.views import mark_cleaned
 from hotel.views import *
 
 from django.conf import settings
@@ -69,6 +70,7 @@ urlpatterns = [
     path('verify/', verify, name="verify"),
 
     path('checkout/<str:pk>/', checkout, name='checkout'),
+    path('mark-cleaned/<str:pk>/', mark_cleaned, name='mark-cleaned'),
     path('deleteStorage/<str:pk>/', deleteStorage, name="deleteStorage"),
     path('deleteFoodMenu/<str:pk>/', deleteFoodMenu, name="deleteFoodMenu"),
     path('food-menu/', food_menu, name="food-menu"),
@@ -81,7 +83,12 @@ urlpatterns = [
     path('deleteBooking/<str:pk>/', deleteBooking, name="deleteBooking"),
     path('delete-room/<int:pk>/', delete_room, name="delete-room"),
     path('completeTask/<str:pk>/', completeTask, name="completeTask"),
+    path('housekeeping/', housekeeping_dashboard, name='housekeeping_dashboard'),
+    path('housekeeping/start/<int:task_id>/', start_cleaning_task, name='start_cleaning_task'),
+    path('housekeeping/complete/<int:task_id>/', mark_room_cleaned_task, name='mark_room_cleaned_task'),
+    path('housekeeping/rebalance/', rebalance_housekeeping_tasks, name='rebalance_housekeeping_tasks'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

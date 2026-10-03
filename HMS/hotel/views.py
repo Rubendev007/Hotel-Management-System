@@ -25,6 +25,8 @@ def home(request):
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     if role == "admin" or role == "manager":
         return redirect('admin_dashboard')
+    if role == "housekeeping":
+        return redirect('housekeeping_dashboard')
     if role != "guest":
         return redirect("employee-profile", pk=request.user.id)
     else:
@@ -200,6 +202,8 @@ def announcements(request):
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     path = role + "/"
+    if role == 'housekeeping':
+        path = 'staff/'
 
     announcements = Announcement.objects.all()
     context = {

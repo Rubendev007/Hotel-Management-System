@@ -57,6 +57,8 @@ class Task(models.Model):
     ]
     employee = models.ForeignKey(
         Employee, null=True, on_delete=models.CASCADE)
+    room = models.ForeignKey(
+        'room.Room', null=True, blank=True, on_delete=models.SET_NULL)
     startTime = models.DateTimeField(auto_now_add=True)
     endTime = models.DateTimeField(null=True, blank=True)
     description = models.TextField()

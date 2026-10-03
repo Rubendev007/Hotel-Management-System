@@ -8,7 +8,9 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group, User
+from django.http import HttpResponse
 
+from django.utils import timezone
 from datetime import datetime, date, timedelta
 import random
 # Create your views here.
@@ -16,7 +18,13 @@ from accounts.models import *
 from room.models import *
 from hotel.models import *
 from .forms import *
+from housekeeping_utils import rebalance_cleaning_tasks
 
+
+
+def csrf_failure(request, reason=""):
+    messages.error(request, "Your session expired or changed. Please try logging in again.")
+    return redirect('login')
 
 
 @ login_required(login_url='login')
@@ -24,6 +32,9 @@ def rooms(request):
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     path = role + "/"
+    # Housekeeping uses staff template since no housekeeping/rooms.html exists
+    if role == 'housekeeping':
+        path = 'staff/'
     rooms = Room.objects.all()
     firstDayStr = None
     lastDateStr = None
@@ -789,11 +800,37 @@ def checkout(request, pk):
         b.save()
 
     # Reset static room fields as backup
+    room.status = 'cleaning'
+    room.statusStartDate = None
+    room.statusEndDate = None
+    room.save()
+    # Auto-assign housekeeping task
+    try:
+        from housekeeping_utils import assign_housekeeping_task
+        assign_housekeeping_task(room)
+    except Exception:
+        pass
+    messages.success(request, f"Checked out Room {room.number}.")
+    return redirect('rooms')
+
+
+@login_required(login_url='login')
+def mark_cleaned(request, pk):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ('manager', 'admin', 'receptionist', 'guest'):
+        return redirect('rooms')
+    room = Room.objects.get(number=pk)
     room.status = 'available'
     room.statusStartDate = None
     room.statusEndDate = None
     room.save()
-    messages.success(request, f"Checked out Room {room.number}.")
+    messages.success(request, f"Room {room.number} marked cleaned.")
+    try:
+        from housekeeping_utils import rebalance_cleaning_tasks
+        rebalance_cleaning_tasks()
+    except Exception:
+        pass
     return redirect('rooms')
 
 
@@ -810,3 +847,117 @@ def delete_room(request, pk):
         messages.success(request, f"Room {room_number} deleted successfully.")
         return redirect('rooms')
     return redirect('rooms')
+
+
+@login_required(login_url='login')
+def housekeeping_dashboard(request):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    path = role + "/"
+    today = date.today()
+
+    cleaning_tasks = Task.objects.filter(category='cleaning').select_related('room', 'employee')
+    active_tasks = cleaning_tasks.filter(status__in=['pending', 'in_progress'])
+    completed_tasks = cleaning_tasks.filter(status='completed')
+
+    total_pending = active_tasks.count()
+    total_in_progress = active_tasks.filter(status='in_progress').count()
+    completed_today = completed_tasks.count()
+
+    if request.method == 'POST':
+        if 'rebalance' in request.POST:
+            try:
+                from housekeeping_utils import rebalance_cleaning_tasks
+                rebalance_count = rebalance_cleaning_tasks()
+                messages.info(request, f"Rebalanced {rebalance_count} pending tasks.")
+            except Exception as e:
+                messages.error(request, f"Rebalance failed: {e}")
+            return redirect('housekeeping_dashboard')
+
+    context = {
+        'role': role,
+        'cleaning_tasks': cleaning_tasks,
+        'active_tasks': active_tasks,
+        'completed_tasks': completed_tasks,
+        'total_pending': total_pending,
+        'total_in_progress': total_in_progress,
+        'completed_today': completed_today,
+    }
+    return render(request, "staff/housekeeping.html", context)
+
+
+@login_required(login_url='login')
+def start_cleaning_task(request, task_id):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ('manager', 'admin', 'receptionist', 'staff', 'housekeeping'):
+        return redirect('rooms')
+    # Try task ID first; fall back to room number
+    try:
+        task = Task.objects.get(id=task_id)
+    except Task.DoesNotExist:
+        try:
+            task = Task.objects.filter(room__number=task_id, status__in=['pending', 'in_progress']).first()
+            if not task:
+                task = Task.objects.filter(room__number=task_id, category='cleaning').order_by('-startTime').first()
+        except Exception:
+            task = None
+    if not task:
+        # No task found by ID or room number — try to find/create a task for this room
+        room = None
+        try:
+            room = Room.objects.get(number=task_id)
+        except Room.DoesNotExist:
+            try:
+                room = Room.objects.get(id=task_id)
+            except Room.DoesNotExist:
+                room = None
+        if room:
+            task, created = Task.objects.get_or_create(
+                room=room,
+                category='cleaning',
+                defaults={'status': 'pending', 'employee': None}
+            )
+            if not created and task.status == 'completed':
+                task.status = 'pending'
+                task.save()
+        else:
+            from django.shortcuts import get_object_or_404
+            task = get_object_or_404(Task, id=task_id)
+    task.status = 'in_progress'
+    task.save()
+    messages.info(request, f"Started cleaning Room {task.room.number if task.room else '?'}.")
+    return redirect('housekeeping_dashboard')
+
+
+@login_required(login_url='login')
+def mark_room_cleaned_task(request, task_id):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role not in ('manager', 'admin', 'receptionist', 'staff', 'housekeeping'):
+        return redirect('rooms')
+    try:
+        task = Task.objects.get(id=task_id)
+    except Task.DoesNotExist:
+        task = Task.objects.filter(room__number=task_id, category='cleaning').order_by('-startTime').first()
+    if not task:
+        from django.shortcuts import get_object_or_404
+        task = get_object_or_404(Task, id=task_id)
+    task.status = 'completed'
+    task.endTime = timezone.now()
+    task.save()
+    if task.room:
+        task.room.status = 'available'
+        task.room.save()
+    messages.success(request, f"Room {task.room.number if task.room else '?'} marked cleaned via task.")
+    return redirect('housekeeping_dashboard')
+
+@login_required(login_url='login')
+def rebalance_housekeeping_tasks(request):
+    try:
+        from housekeeping_utils import rebalance_cleaning_tasks
+        rebalance_cleaning_tasks()
+        messages.info(request, "Housekeeping workload rebalanced.")
+    except Exception as e:
+        messages.error(request, f"Rebalance failed: {e}")
+    return redirect('housekeeping_dashboard')
