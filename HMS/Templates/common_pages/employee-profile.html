@@ -80,7 +80,7 @@
     </form>
     <br>
 
-    {% if role == 'staff' or request.user != employee.user %}
+    {% if role != 'housekeeping' and role != 'staff' and request.user != employee.user %}
     <div class="table-responsive my-5">
         <div class="table-header row">
 

@@ -28,8 +28,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold">Room Type:</label>
-                    <input type="text" class="form-control border border-secondary" name="type" />
+                    <label class="font-weight-bold" for="roomType">Room Type:</label>
+                    <select id="roomType" class="form-control border border-secondary" name="roomType" required>
+                        <option value="" selected disabled>Select a room type</option>
+                        <option value="King">King</option>
+                        <option value="Luxury">Luxury</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Economic">Economic</option>
+                    </select>
                 </div>
                 <div class="form-group mb-3">
                     <label class="font-weight-bold">Room Image</label>

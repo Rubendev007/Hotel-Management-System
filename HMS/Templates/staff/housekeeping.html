@@ -13,7 +13,7 @@
     <div class="col-md-3"><div class="card text-bg-warning"><div class="card-body"><h5>Pending</h5><p class="h2">{{ total_pending }}</p></div></div></div>
     <div class="col-md-3"><div class="card text-bg-info"><div class="card-body"><h5>In Progress</h5><p class="h2">{{ total_in_progress }}</p></div></div></div>
     <div class="col-md-3"><div class="card text-bg-success"><div class="card-body"><h5>Cleaned Today</h5><p class="h2">{{ completed_today }}</p></div></div></div>
-    <div class="col-md-3"><form method="post">{% csrf_token %}<button name="rebalance" class="btn btn-primary w-100 h-100">Auto-Balance Workload</button></form></div>
+    {# <div class="col-md-3"><form method="post">{% csrf_token %}<button name="rebalance" class="btn btn-primary w-100 h-100">Auto-Balance Workload</button></form></div> #}
   </div>
   <h3>Active Cleaning Tasks</h3>
   <div class="row">
@@ -21,7 +21,7 @@
     <div class="col-md-4 mb-3">
       <div class="card {% if t.status == 'pending' %}border-warning{% elif t.status == 'in_progress' %}border-info{% else %}border-success{% endif %}">
         <div class="card-body">
-          <h5>Room {{ t.room.number|default:'?' }} — {{ t.room.roomType|default:'' }}</h5>
+          <h5>Room {{ t.room_number|default:"N/A" }}</h5>
           <p class="text-muted">Task #{{ t.id }} — Status: {{ t.status|title }}</p>
           {% if t.status != 'completed' %}
             {% if t.status == 'pending' %}
@@ -47,7 +47,7 @@
     <div class="col-md-4 mb-3">
       <div class="card border-success">
         <div class="card-body">
-          <h5>Room {{ t.room.number|default:'?' }} — {{ t.room.roomType|default:'' }}</h5>
+          <h5>Room {{ t.room_number|default:"N/A" }}</h5>
           <p class="text-muted">Task #{{ t.id }} — Completed: {{ t.endTime }}</p>
           <span class="badge bg-success">Cleaned</span>
         </div>

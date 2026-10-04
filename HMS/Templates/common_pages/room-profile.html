@@ -144,6 +144,8 @@
   <!-- Action -->
   <div class="d-flex justify-content-between align-items-center">
     <a href="{% url 'rooms' %}" class="btn btn-outline-secondary">Back to Catalog</a>
+    {% if role != 'admin' %}
     <a href="#" onclick="alert('Booking flow preserved'); return false;" class="btn btn-primary btn-lg shadow-sm">Book Room</a>
+    {% endif %}
   </div>
 </div>

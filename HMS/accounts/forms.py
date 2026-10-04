@@ -44,7 +44,6 @@ class editGuest(ModelForm):
 
 class ROLES(forms.Form):
     ROLES_TYPES = [
-        ('manager', 'manager'),
         ('receptionist', 'receptionist'),
         ('staff', 'staff'),
         ('housekeeping', 'Housekeeping'),

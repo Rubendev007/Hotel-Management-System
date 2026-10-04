@@ -64,6 +64,7 @@ class RoomServices(models.Model):
         ('Food', 'Food'),
         ('Cleaning', 'Cleaning'),
         ('Technical', 'Technical'),
+        ('Amenities', 'Amenities'),
     )
 
     curBooking = models.ForeignKey(

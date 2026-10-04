@@ -1,0 +1,65 @@
+{% extends 'base_root.html' %}
+{% block extra_head %}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Staff Operational Dashboard</h1>
+    <div>
+      <a href="{% url 'employee-profile' request.user.id %}" class="btn btn-outline-secondary me-2"><i class="bi bi-person"></i> Profile</a>
+      <a href="{% url 'logout' %}" class="btn btn-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6"><div class="card text-bg-warning"><div class="card-body"><h5>Active Requests</h5><p class="h2">{{ active_count }}</p></div></div></div>
+    <div class="col-md-6"><div class="card text-bg-success"><div class="card-body"><h5>Completed Today</h5><p class="h2">{{ completed_count }}</p></div></div></div>
+  </div>
+
+  <h3>Active Guest Service Requests</h3>
+  <div class="row">
+  {% for task in active_requests %}
+    <div class="col-md-4 mb-3">
+      <div class="card {% if task.status == 'pending' %}border-warning{% elif task.status == 'in_progress' %}border-info{% endif %}">
+        <div class="card-body">
+          <h5 class="card-title">Room {{ task.room_number }}</h5>
+          <p class="text-muted">Task #{{ task.id }} — {{ task.description }} — Status: {{ task.status|title }}</p>
+          <p class="small text-muted">Started: {{ task.startTime }}</p>
+          {% if task.status == 'pending' %}
+            <form method="post" action="{% url 'start_cleaning_task' task.id %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'staff_dashboard' %}">
+              <button type="submit" class="btn btn-outline-primary btn-sm">Start Service</button>
+            </form>
+          {% elif task.status == 'in_progress' %}
+            <form method="post" action="{% url 'mark_room_cleaned_task' task.id %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'staff_dashboard' %}">
+              <button type="submit" class="btn btn-outline-success btn-sm">Complete & Deliver</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p>No active service requests.</p>
+  {% endfor %}
+  </div>
+
+  <h3>Completed Service Requests</h3>
+  <table class="table table-hover">
+    <thead><tr><th>Task ID</th><th>Room</th><th>Request Type</th><th>Completed</th></tr></thead>
+    <tbody>
+    {% for task in completed_today %}
+      <tr>
+        <td>{{ task.id }}</td>
+        <td>{{ task.room_number }}</td>
+        <td>{{ task.description }}</td>
+        <td><span class="badge bg-success">Delivered / Completed</span> {{ task.endTime }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="text-muted">No completed requests today.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

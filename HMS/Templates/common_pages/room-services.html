@@ -28,7 +28,7 @@
               <td><span class="badge bg-secondary">{{ rs.servicesType }}</span></td>
               <td>{{ rs.createdDate }}</td>
               <td>{{ rs.price }}</td>
-              <td><a href="" class="btn btn-sm btn-outline-danger">Delete</a></td>
+              <td><a href="{% url 'delete_room_service' rs.id %}" class="btn btn-sm btn-outline-danger">Delete</a></td>
             </tr>
             {% empty %}
             <tr><td colspan="6" class="text-center py-4 text-muted">No services.</td></tr>

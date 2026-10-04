@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from datetime import datetime, date, timedelta
 import random
+import re
 # Create your views here.
 from accounts.models import *
 from room.models import *
@@ -210,7 +211,7 @@ def add_room(request):
         number = request.POST.get('number')
         capacity = request.POST.get('capacity')
         numberOfBeds = request.POST.get('beds')
-        roomType = request.POST.get('type')
+        roomType = request.POST.get('roomType')
         price = request.POST.get('price')
         print(capacity)
         room = Room(number=number, capacity=capacity,
@@ -393,12 +394,21 @@ def current_room_services(request):
         }
         return render(request, path + "current-room-services.html", context)
     curRoomServices = RoomServices.objects.filter(curBooking=curBooking)
+    # Clean up orphaned service requests without matching tasks
+    for svc in curRoomServices:
+        has_task = Task.objects.filter(room=svc.room, description__icontains=svc.servicesType).exists() or \
+                   Task.objects.filter(employee__user__groups__name='staff', description__icontains=svc.servicesType).exists()
+        if not has_task:
+            try:
+                svc.delete()
+            except Exception:
+                pass
 
     room_services = RoomServices.objects.all()
 
-    group = Group.objects.get(name='staff')
-    users = User.objects.filter(groups=group)
-    allEmployees = Employee.objects.filter(user__in=users)
+    staff_group = Group.objects.filter(name='staff').first()
+    staff_users = User.objects.filter(groups=staff_group) if staff_group else User.objects.none()
+    allEmployees = list(Employee.objects.filter(user__in=staff_users))
     availableEmployee = list()
     maxTaskNum = 10
 
@@ -420,51 +430,89 @@ def current_room_services(request):
     }
 
     if request.method == "POST":
-        if "foodReq" in request.POST:
-            newServiceReq = RoomServices(
-                curBooking=curBooking, price=50.0, room=curRoom,  servicesType='Food')
-            newServiceReq.save()
+        try:
+            if "foodReq" in request.POST:
+                service_type = 'Food'
+                newServiceReq = RoomServices(
+                    curBooking=curBooking, price=50.0, room=curRoom, servicesType=service_type)
+                newServiceReq.save()
 
-            chosenEmp = random.choice(availableEmployee)
-            lastTask = Task.objects.filter(employee=chosenEmp).last()
-            if(lastTask != None):
-                newTask = Task(employee=chosenEmp, startTime=lastTask.endTime,
-                               endTime=lastTask.endTime+datetime.timedelta(minutes=30), description="Food Request")
-            else:
-                newTask = Task(employee=chosenEmp, startTime=datetime.datetime.now(),
-                               endTime=datetime.datetime.now()+datetime.timedelta(minutes=30), description="Food Request")
-            newTask.save()
-            return redirect("current-room-services")
+                if availableEmployee:
+                    chosenEmp = random.choice(availableEmployee)
+                else:
+                    chosenEmp = Employee.objects.first()
+                lastTask = Task.objects.filter(employee=chosenEmp).last() if chosenEmp else None
+                if lastTask is not None:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=lastTask.endTime,
+                                        endTime=lastTask.endTime+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='food')
+                else:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=datetime.datetime.now(),
+                                        endTime=datetime.datetime.now()+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='food')
+                return redirect("current-room-services")
 
-        if "cleaningReq" in request.POST:
-            newServiceReq = RoomServices(
-                curBooking=curBooking, price=0.0, room=curRoom,  servicesType='Cleaning')
-            newServiceReq.save()
-            chosenEmp = random.choice(availableEmployee)
-            lastTask = Task.objects.filter(employee=chosenEmp).last()
+            if "cleaningReq" in request.POST:
+                service_type = 'Cleaning'
+                newServiceReq = RoomServices(
+                    curBooking=curBooking, price=0.0, room=curRoom, servicesType=service_type)
+                newServiceReq.save()
+                if availableEmployee:
+                    chosenEmp = random.choice(availableEmployee)
+                else:
+                    chosenEmp = Employee.objects.first()
+                lastTask = Task.objects.filter(employee=chosenEmp).last() if chosenEmp else None
+                if lastTask is not None:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=lastTask.endTime,
+                                        endTime=lastTask.endTime+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='cleaning')
+                else:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=datetime.datetime.now(),
+                                        endTime=datetime.datetime.now()+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='cleaning')
+                return redirect("current-room-services")
 
-            if(lastTask != None):
-                newTask = Task(employee=chosenEmp, startTime=lastTask.endTime,
-                               endTime=lastTask.endTime+datetime.timedelta(minutes=30), description="Cleaning Request")
-            else:
-                newTask = Task(employee=chosenEmp, startTime=datetime.datetime.now(),
-                               endTime=datetime.datetime.now()+datetime.timedelta(minutes=30), description="Cleaning Request")
-            newTask.save()
-            return redirect("current-room-services")
+            if "amenitiesReq" in request.POST:
+                service_type = 'Amenities'
+                newServiceReq = RoomServices(
+                    curBooking=curBooking, price=0.0, room=curRoom, servicesType=service_type)
+                newServiceReq.save()
+                if availableEmployee:
+                    chosenEmp = random.choice(availableEmployee)
+                else:
+                    chosenEmp = Employee.objects.first()
+                lastTask = Task.objects.filter(employee=chosenEmp).last() if chosenEmp else None
+                if lastTask is not None:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=lastTask.endTime,
+                                        endTime=lastTask.endTime+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='maintenance')
+                else:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=datetime.datetime.now(),
+                                        endTime=datetime.datetime.now()+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='maintenance')
+                return redirect("current-room-services")
 
-        if "techReq" in request.POST:
-            newServiceReq = RoomServices(
-                curBooking=curBooking, price=0.0, room=curRoom,  servicesType='Technical')
-            newServiceReq.save()
-            chosenEmp = random.choice(availableEmployee)
-            lastTask = Task.objects.filter(employee=chosenEmp).last()
-            if(lastTask != None):
-                newTask = Task(employee=chosenEmp, startTime=lastTask.endTime,
-                               endTime=lastTask.endTime+datetime.timedelta(minutes=30), description="Tech Request")
-            else:
-                newTask = Task(employee=chosenEmp, startTime=datetime.datetime.now(),
-                               endTime=datetime.datetime.now()+datetime.timedelta(minutes=30), description="Tech Request")
-            newTask.save()
+            if "techReq" in request.POST:
+                service_type = 'Technical'
+                newServiceReq = RoomServices(
+                    curBooking=curBooking, price=0.0, room=curRoom, servicesType=service_type)
+                newServiceReq.save()
+                if availableEmployee:
+                    chosenEmp = random.choice(availableEmployee)
+                else:
+                    chosenEmp = Employee.objects.first()
+                lastTask = Task.objects.filter(employee=chosenEmp).last() if chosenEmp else None
+                if lastTask is not None:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=lastTask.endTime,
+                                        endTime=lastTask.endTime+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='maintenance')
+                else:
+                    Task.objects.create(employee=chosenEmp, room=curRoom, startTime=datetime.datetime.now(),
+                                        endTime=datetime.datetime.now()+datetime.timedelta(minutes=30),
+                                        description=f"{service_type} Request - Room {curRoom.number}", category='maintenance')
+                return redirect("current-room-services")
+        except Exception as e:
+            messages.error(request, f"Service request failed: {e}")
             return redirect("current-room-services")
 
     return render(request, path + "current-room-services.html", context)
@@ -856,13 +904,19 @@ def housekeeping_dashboard(request):
     path = role + "/"
     today = date.today()
 
-    cleaning_tasks = Task.objects.filter(category='cleaning').select_related('room', 'employee')
-    active_tasks = cleaning_tasks.filter(status__in=['pending', 'in_progress'])
-    completed_tasks = cleaning_tasks.filter(status='completed')
+    cleaning_tasks = list(Task.objects.filter(category='cleaning').select_related('room', 'employee'))
+    for t in cleaning_tasks:
+        if t.room:
+            t.room_number = str(t.room.number)
+        else:
+            match = re.search(r'Room\s*(\d+)', t.description or '', re.IGNORECASE)
+            t.room_number = match.group(1) if match else 'N/A'
+    active_tasks = [t for t in cleaning_tasks if t.status in ['pending', 'in_progress']]
+    completed_tasks = [t for t in cleaning_tasks if t.status == 'completed']
 
-    total_pending = active_tasks.count()
-    total_in_progress = active_tasks.filter(status='in_progress').count()
-    completed_today = completed_tasks.count()
+    total_pending = len(active_tasks)
+    total_in_progress = sum(t.status == 'in_progress' for t in active_tasks)
+    completed_today = len(completed_tasks)
 
     if request.method == 'POST':
         if 'rebalance' in request.POST:
@@ -927,7 +981,8 @@ def start_cleaning_task(request, task_id):
     task.status = 'in_progress'
     task.save()
     messages.info(request, f"Started cleaning Room {task.room.number if task.room else '?'}.")
-    return redirect('housekeeping_dashboard')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'housekeeping_dashboard'
+    return redirect(next_url)
 
 
 @login_required(login_url='login')
@@ -950,7 +1005,44 @@ def mark_room_cleaned_task(request, task_id):
         task.room.status = 'available'
         task.room.save()
     messages.success(request, f"Room {task.room.number if task.room else '?'} marked cleaned via task.")
-    return redirect('housekeeping_dashboard')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'housekeeping_dashboard'
+    return redirect(next_url)
+
+@login_required(login_url='login')
+def staff_dashboard(request):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role != 'staff':
+        return redirect('rooms')
+    today = date.today()
+
+    active_requests = list(Task.objects.filter(
+        category__in=['food', 'maintenance', 'amenities', 'technical'],
+        status__in=['pending', 'in_progress']
+    ).select_related('room', 'employee'))
+
+    completed_today = list(Task.objects.filter(
+        category__in=['food', 'maintenance', 'amenities', 'technical'],
+        status='completed',
+        endTime__date=today
+    ).select_related('room', 'employee'))
+
+    for task in active_requests + completed_today:
+        if task.room:
+            task.room_number = str(task.room.number)
+        else:
+            match = re.search(r'Room\s*[-:\s]*(\d+)', task.description or '', re.IGNORECASE)
+            task.room_number = match.group(1) if match else 'N/A'
+
+    context = {
+        'role': role,
+        'active_requests': active_requests,
+        'completed_today': completed_today,
+        'active_count': len(active_requests),
+        'completed_count': len(completed_today),
+    }
+    return render(request, 'staff/dashboard.html', context)
+
 
 @login_required(login_url='login')
 def rebalance_housekeeping_tasks(request):
@@ -960,4 +1052,5 @@ def rebalance_housekeeping_tasks(request):
         messages.info(request, "Housekeeping workload rebalanced.")
     except Exception as e:
         messages.error(request, f"Rebalance failed: {e}")
-    return redirect('housekeeping_dashboard')
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'housekeeping_dashboard'
+    return redirect(next_url)

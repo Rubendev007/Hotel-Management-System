@@ -127,6 +127,8 @@ def login_page(request):
                     # Admin/manager dashboard; others keep profile redirect
                     if user.groups.filter(name__in=['admin','manager']).exists():
                         return redirect('admin_dashboard')
+                    elif user.groups.filter(name='staff').exists():
+                        return redirect('staff_dashboard')
                     return redirect('home')
             else:
                 messages.info(request, "Username or Password is incorrect")
@@ -335,7 +337,7 @@ def employee_details(request, pk):
 
     tempUser = User.objects.get(id=pk)
     employee = Employee.objects.get(user=tempUser)
-    tasks = Task.objects.filter(employee=employee)
+    tasks = Task.objects.filter(employee=employee).exclude(category='cleaning').exclude(description__icontains='Clean')
     context = {
         "role": role,
         "employee": employee,
@@ -439,7 +441,10 @@ def tasks(request):
         path = 'staff/'
 
     tempEmp = Employee.objects.get(user=request.user)
-    tasks = Task.objects.filter(employee=tempEmp)
+    if role == 'staff':
+        tasks = Task.objects.filter(category__in=['food', 'maintenance']).exclude(category='cleaning')
+    else:
+        tasks = Task.objects.filter(employee=tempEmp).exclude(category='cleaning')
 
     context = {
         "role": role,

@@ -27,6 +27,8 @@ def home(request):
         return redirect('admin_dashboard')
     if role == "housekeeping":
         return redirect('housekeeping_dashboard')
+    if role == "staff":
+        return redirect('staff_dashboard')
     if role != "guest":
         return redirect("employee-profile", pk=request.user.id)
     else:
@@ -340,6 +342,22 @@ def deleteStorage(request, pk):
 
     }
     return render(request, path + "deleteStorage.html", context)
+
+
+@login_required(login_url='login')
+def delete_room_service(request, pk):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    path = role + "/"
+    rs = RoomServices.objects.get(id=pk)
+    if request.method == "POST":
+        rs.delete()
+        return redirect('room-services')
+    context = {
+        "role": role,
+        "rs": rs,
+    }
+    return render(request, "common_pages/delete-room-service.html", context)
 
 
 @login_required(login_url='login')

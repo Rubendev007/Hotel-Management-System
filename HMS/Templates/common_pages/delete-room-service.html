@@ -1,0 +1,16 @@
+{% extends '../index.html' %}
+{% block context %}
+<div class="container py-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light"><h2 class="h5 mb-0">Delete Room Service</h2></div>
+    <div class="card-body">
+      <p>Are you sure you want to delete the service request for <strong>Room {{ rs.room.number }}</strong> ({{ rs.servicesType }})?</p>
+      <form method="POST" action="{% url 'delete_room_service' rs.id %}">
+        {% csrf_token %}
+        <a href="{% url 'room-services' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
