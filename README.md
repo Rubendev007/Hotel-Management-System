@@ -76,7 +76,73 @@ python manage.py createsuperuser
 
 This creates an account for Django's built-in administration site at `/admin/`. Application dashboards also use HMS role groups (such as `admin`, `receptionist`, `staff`, `housekeeping`, and `guest`); a Django superuser does not automatically select an HMS dashboard role. Assign users to the appropriate group when managing accounts.
 
-### 6. Start the development server
+### 6. Create local test accounts for each role (optional)
+
+To try each dashboard locally, first ensure you have created the superuser above. Then start the Django shell from the `HMS` directory:
+
+```bash
+python manage.py shell
+```
+
+Paste the following entire block into the shell. If your superuser username is not `admin`, replace that username in the first line. This assigns the superuser to the HMS `admin` group and creates its employee profile, then creates `test_manager`, `test_receptionist`, `test_staff`, and `test_guest` accounts with their required role groups and profiles:
+
+```python
+from django.contrib.auth.models import Group, User
+from accounts.models import Employee, Guest
+
+admin_user = User.objects.get(username="admin")
+admin_group, _ = Group.objects.get_or_create(name="admin")
+admin_user.groups.add(admin_group)
+Employee.objects.get_or_create(
+    user=admin_user,
+    defaults={"phoneNumber": "+12025550101", "salary": 0.0},
+)
+
+test_roles = {
+    "manager": "+12025550102",
+    "receptionist": "+12025550103",
+    "staff": "+12025550104",
+    "guest": "+12025550105",
+}
+
+for role, phone_number in test_roles.items():
+    group, _ = Group.objects.get_or_create(name=role)
+    username = f"test_{role}"
+    user, _ = User.objects.get_or_create(
+        username=username,
+        defaults={
+            "first_name": role.capitalize(),
+            "last_name": "User",
+            "email": f"{role}@example.com",
+        },
+    )
+    user.set_password("pass1234")
+    user.save()
+    user.groups.add(group)
+
+    if role == "guest":
+        Guest.objects.get_or_create(
+            user=user,
+            defaults={"phoneNumber": phone_number},
+        )
+    else:
+        Employee.objects.get_or_create(
+            user=user,
+            defaults={"phoneNumber": phone_number, "salary": 3000.0},
+        )
+
+print("Local role test accounts are ready.")
+```
+
+After the full block finishes, leave the shell:
+
+```python
+exit()
+```
+
+You can sign in with `admin` (or the superuser username you used) and the test accounts. Each test account's password is `pass1234`. These are development-only credentials; never reuse them outside your local environment.
+
+### 7. Start the development server
 
 ```bash
 python manage.py runserver
