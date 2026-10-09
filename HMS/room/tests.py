@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from accounts.models import Guest
 from .forms import editBooking
-from .models import Booking, Room
+from .models import Booking, Room, Season
 
 
 class BookingStabilizationTests(TestCase):
@@ -131,6 +131,207 @@ class BookingStabilizationTests(TestCase):
             reverse("admin_dashboard"),
             fetch_redirect_response=False,
         )
+
+    def test_admin_can_create_seasonal_pricing_period(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+        start_date = date.today() + timedelta(days=2)
+        end_date = start_date + timedelta(days=3)
+
+        response = self.client.post(reverse("season-create"), {
+            "name": "Test Season",
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "markup_percentage": "15.00",
+            "is_active": "on",
+        })
+
+        self.assertRedirects(
+            response,
+            reverse("seasons"),
+            fetch_redirect_response=False,
+        )
+        season = Season.objects.get(name="Test Season")
+        self.assertEqual(season.markup_percentage, 15)
+        self.assertTrue(season.is_active)
+
+    def test_admin_season_form_rejects_end_before_start(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+        start_date = date.today() + timedelta(days=5)
+
+        response = self.client.post(reverse("season-create"), {
+            "name": "Invalid Season",
+            "start_date": start_date.isoformat(),
+            "end_date": (start_date - timedelta(days=1)).isoformat(),
+            "markup_percentage": "15.00",
+            "is_active": "on",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Season.objects.filter(name="Invalid Season").exists())
+        self.assertContains(response, "End date must be on or after the start date.")
+
+    def test_admin_can_create_off_season_discount(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+        start_date = date.today() + timedelta(days=2)
+
+        response = self.client.post(reverse("season-create"), {
+            "name": "Quiet Season",
+            "start_date": start_date.isoformat(),
+            "end_date": (start_date + timedelta(days=10)).isoformat(),
+            "markup_percentage": "-20",
+            "is_active": "on",
+        })
+
+        self.assertRedirects(response, reverse("seasons"), fetch_redirect_response=False)
+        self.assertEqual(Season.objects.get(name="Quiet Season").markup_percentage, -20)
+
+    def test_admin_cannot_create_discount_below_one_hundred_percent(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+        start_date = date.today() + timedelta(days=2)
+
+        response = self.client.post(reverse("season-create"), {
+            "name": "Invalid Discount",
+            "start_date": start_date.isoformat(),
+            "end_date": (start_date + timedelta(days=10)).isoformat(),
+            "markup_percentage": "-100.01",
+            "is_active": "on",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Season.objects.filter(name="Invalid Discount").exists())
+        self.assertContains(response, "Markup cannot be lower than -100%.")
+
+    def test_admin_can_edit_disable_and_delete_season(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+        season = Season.objects.create(
+            name="Existing Season",
+            start_date=date.today() + timedelta(days=2),
+            end_date=date.today() + timedelta(days=5),
+            markup_percentage=12,
+        )
+
+        edit_response = self.client.post(reverse("season-edit", args=[season.pk]), {
+            "name": "Updated Season",
+            "start_date": season.start_date.isoformat(),
+            "end_date": season.end_date.isoformat(),
+            "markup_percentage": "18.50",
+            "is_active": "on",
+        })
+        self.assertRedirects(edit_response, reverse("seasons"), fetch_redirect_response=False)
+        season.refresh_from_db()
+        self.assertEqual(season.name, "Updated Season")
+        self.assertEqual(season.markup_percentage, 18.5)
+
+        toggle_response = self.client.post(reverse("season-toggle", args=[season.pk]))
+        self.assertRedirects(toggle_response, reverse("seasons"), fetch_redirect_response=False)
+        season.refresh_from_db()
+        self.assertFalse(season.is_active)
+
+        delete_response = self.client.post(reverse("season-delete", args=[season.pk]))
+        self.assertRedirects(delete_response, reverse("seasons"), fetch_redirect_response=False)
+        self.assertFalse(Season.objects.filter(pk=season.pk).exists())
+
+    def test_non_admin_cannot_access_season_management(self):
+        response = self.client.get(reverse("seasons"))
+
+        self.assertRedirects(response, reverse("home"), fetch_redirect_response=False)
+
+    def test_booking_total_applies_active_season_markup(self):
+        start_date = date.today() + timedelta(days=2)
+        end_date = start_date + timedelta(days=2)
+        Season.objects.create(
+            name="Test Markup",
+            start_date=start_date,
+            end_date=end_date - timedelta(days=1),
+            markup_percentage=10,
+            is_active=True,
+        )
+
+        response = self.client.post(reverse("booking-make"), {
+            "roomid": self.room.pk,
+            "fd": start_date.isoformat(),
+            "ld": end_date.isoformat(),
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertAlmostEqual(response.context["total"], 220)
+
+    def test_guest_room_catalog_shows_off_season_discount(self):
+        today = date.today()
+        Season.objects.create(
+            name="Current Off Season",
+            start_date=today,
+            end_date=today + timedelta(days=5),
+            markup_percentage=-20,
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("rooms"))
+
+        room = response.context["rooms"][0]
+        self.assertEqual(room.seasonal_markup, -20)
+        self.assertEqual(room.seasonal_price, 80)
+        self.assertContains(response, "Save 20.0%")
+        self.assertContains(response, "price-original")
+        self.assertContains(response, "Rs. 80.00")
+
+    def test_guest_room_catalog_discloses_peak_season_increase(self):
+        today = date.today()
+        Season.objects.create(
+            name="Current Peak Season",
+            start_date=today,
+            end_date=today + timedelta(days=5),
+            markup_percentage=25,
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("rooms"))
+
+        self.assertContains(response, "Peak season +25.0%")
+        self.assertContains(response, "price-original")
+        self.assertContains(response, "Rs. 125.00")
+
+    def test_room_catalog_prices_by_selected_checkin_date(self):
+        start_date = date.today() + timedelta(days=4)
+        Season.objects.create(
+            name="Future Off Season",
+            start_date=start_date,
+            end_date=start_date + timedelta(days=3),
+            markup_percentage=-15,
+            is_active=True,
+        )
+
+        response = self.client.post(reverse("rooms"), {
+            "dateFilter": "",
+            "fd": start_date.isoformat(),
+            "ld": (start_date + timedelta(days=1)).isoformat(),
+        })
+
+        self.assertEqual(response.context["rooms"][0].seasonal_markup, -15)
+        self.assertContains(response, "Save 15.0%")
+
+    def test_booking_summary_shows_discounted_nightly_rates(self):
+        start_date = date.today() + timedelta(days=2)
+        end_date = start_date + timedelta(days=2)
+        Season.objects.create(
+            name="Off Season",
+            start_date=start_date,
+            end_date=end_date - timedelta(days=1),
+            markup_percentage=-20,
+            is_active=True,
+        )
+
+        response = self.client.post(reverse("booking-make"), {
+            "roomid": self.room.pk,
+            "fd": start_date.isoformat(),
+            "ld": end_date.isoformat(),
+        })
+
+        self.assertEqual(response.context["total"], 160)
+        self.assertEqual(response.context["base_total"], 200)
+        self.assertEqual([night["rate"] for night in response.context["nightly_prices"]], [80, 80])
+        self.assertContains(response, "Off-season")
+        self.assertContains(response, "Rs. 160.00")
 
     def test_booking_make_rejects_past_checkin_and_invalid_checkout(self):
         today = date.today()

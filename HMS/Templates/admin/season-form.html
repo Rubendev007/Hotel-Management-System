@@ -1,0 +1,40 @@
+{% extends "base_admin.html" %}
+
+{% block admin_content %}
+<div class="mb-4">
+  <a href="{% url 'seasons' %}" class="text-info text-decoration-none small">&larr; Back to seasonal pricing</a>
+  <p class="text-uppercase text-secondary small fw-semibold mt-3 mb-1">Pricing configuration</p>
+  <h1 class="h3 text-white fw-bold mb-1">{{ page_title }}</h1>
+  <p class="text-secondary small mb-0">Set the dates and markup used when calculating nightly booking totals.</p>
+</div>
+
+<div class="card card-kpi p-4">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="{% if field.name == 'is_active' %}col-12{% else %}col-md-6{% endif %}">
+        {% if field.name == 'is_active' %}
+        <div class="form-check mt-2">
+          {{ field }}
+          <label class="form-check-label text-white" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        </div>
+        {% else %}
+        <label class="form-label text-light small" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text text-secondary">{{ field.help_text }}</div>{% endif %}
+        {% endif %}
+        {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+      <button type="submit" class="btn btn-success">{{ submit_label }}</button>
+      <a href="{% url 'seasons' %}" class="btn btn-outline-light">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

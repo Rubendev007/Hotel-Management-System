@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 
 from django.db.models import Q, Count
@@ -591,3 +591,97 @@ def admin_dashboard(request):
         ).distinct().count(),
     }
     return render(request, "admin/admin-dashboard.html", context)
+
+
+def _can_manage_seasons(request):
+    return request.user.groups.filter(name__in=("admin", "manager")).exists()
+
+
+@login_required(login_url='login')
+def seasons(request):
+    if not _can_manage_seasons(request):
+        messages.error(request, "You do not have permission to manage seasonal pricing.")
+        return redirect("home")
+    from room.models import Season
+    return render(request, "admin/seasons.html", {
+        "role": request.user.groups.first().name,
+        "seasons": Season.objects.order_by("-start_date", "name"),
+        "today": date.today(),
+    })
+
+
+@login_required(login_url='login')
+def season_create(request):
+    if not _can_manage_seasons(request):
+        messages.error(request, "You do not have permission to manage seasonal pricing.")
+        return redirect("home")
+    from room.forms import SeasonForm
+    if request.method == "POST":
+        form = SeasonForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Seasonal pricing period created.")
+            return redirect("seasons")
+    else:
+        form = SeasonForm()
+    return render(request, "admin/season-form.html", {
+        "role": request.user.groups.first().name,
+        "form": form,
+        "page_title": "Create pricing season",
+        "submit_label": "Create season",
+    })
+
+
+@login_required(login_url='login')
+def season_edit(request, pk):
+    if not _can_manage_seasons(request):
+        messages.error(request, "You do not have permission to manage seasonal pricing.")
+        return redirect("home")
+    from room.forms import SeasonForm
+    from room.models import Season
+    season = get_object_or_404(Season, pk=pk)
+    if request.method == "POST":
+        form = SeasonForm(request.POST, instance=season)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Seasonal pricing period updated.")
+            return redirect("seasons")
+    else:
+        form = SeasonForm(instance=season)
+    return render(request, "admin/season-form.html", {
+        "role": request.user.groups.first().name,
+        "form": form,
+        "season": season,
+        "page_title": "Edit pricing season",
+        "submit_label": "Save changes",
+    })
+
+
+@login_required(login_url='login')
+def season_delete(request, pk):
+    if not _can_manage_seasons(request):
+        messages.error(request, "You do not have permission to manage seasonal pricing.")
+        return redirect("home")
+    if request.method != "POST":
+        return redirect("seasons")
+    from room.models import Season
+    season = get_object_or_404(Season, pk=pk)
+    season.delete()
+    messages.success(request, "Seasonal pricing period deleted.")
+    return redirect("seasons")
+
+
+@login_required(login_url='login')
+def season_toggle(request, pk):
+    if not _can_manage_seasons(request):
+        messages.error(request, "You do not have permission to manage seasonal pricing.")
+        return redirect("home")
+    if request.method != "POST":
+        return redirect("seasons")
+    from room.models import Season
+    season = get_object_or_404(Season, pk=pk)
+    season.is_active = not season.is_active
+    season.save(update_fields=["is_active"])
+    status = "activated" if season.is_active else "deactivated"
+    messages.success(request, f"Seasonal pricing period {status}.")
+    return redirect("seasons")

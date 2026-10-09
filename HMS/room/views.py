@@ -39,6 +39,26 @@ def room_unavailable_for_dates(room, check_in, check_out):
     ).exists()
 
 
+def seasonal_markup_for_date(check_date):
+    active_seasons = Season.objects.filter(
+        is_active=True,
+        start_date__lte=check_date,
+        end_date__gte=check_date,
+    )
+    return max(
+        (float(season.markup_percentage) for season in active_seasons),
+        default=0.0,
+    )
+
+
+def apply_seasonal_rates(rooms, pricing_date):
+    markup = seasonal_markup_for_date(pricing_date)
+    for room in rooms:
+        room.seasonal_markup = markup
+        room.seasonal_price = round(float(room.price) * (1 + markup / 100), 2)
+    return rooms
+
+
 
 def csrf_failure(request, reason=""):
     messages.error(request, "Your session expired or changed. Please try logging in again.")
@@ -56,6 +76,7 @@ def rooms(request):
     rooms = Room.objects.all()
     firstDayStr = None
     lastDateStr = None
+    pricing_date = date.today()
 
     def chech_availability(fd, ed):
         check_in = fd.date()
@@ -144,6 +165,7 @@ def rooms(request):
                 messages.error(request, "The end date must be on or after the start date.")
                 return redirect("rooms")
 
+            pricing_date = firstDay.date()
             rooms = chech_availability(firstDay, lastDate)
 
         if "filter" in request.POST:
@@ -167,9 +189,13 @@ def rooms(request):
                 rooms = rooms.filter(
                     price__lte=request.POST.get("price"))
 
+            rooms = apply_seasonal_rates(rooms, pricing_date)
             context = {
                 "role": role,
                 "rooms": rooms,
+                "fd": firstDayStr,
+                "ld": lastDateStr,
+                "pricing_date": pricing_date,
                 "number": request.POST.get("number"),
                 "capacity": request.POST.get("capacity"),
                 "nob": request.POST.get("nob"),
@@ -180,6 +206,8 @@ def rooms(request):
 
     from datetime import date as dt
     today = dt.today()
+    if firstDayStr:
+        pricing_date = datetime.strptime(firstDayStr, '%Y-%m-%d').date()
     active_booking_ids = list(Booking.objects.filter(
         startDate__lte=today,
         endDate__gte=today,
@@ -198,12 +226,14 @@ def rooms(request):
     )
     for room in rooms:
         room.is_unavailable = room.number in unavailable_room_ids
+    rooms = apply_seasonal_rates(rooms, pricing_date)
     context = {
         "role": role,
         'rooms': rooms,
         'fd': firstDayStr,
         'ld': lastDateStr,
         'today': today,
+        'pricing_date': pricing_date,
         'tomorrow': today + __import__('datetime').timedelta(days=1),
         'active_booking_ids': active_booking_ids,
         'unavailable_room_ids': unavailable_room_ids,
@@ -370,6 +400,11 @@ def room_detail(request, pk):
     is_available = not room_unavailable_for_dates(room, today, today)
     fd = request.GET.get('fd') or str(today)
     ld = request.GET.get('ld') or str(today + timedelta(days=2))
+    try:
+        pricing_date = datetime.strptime(fd, "%Y-%m-%d").date()
+    except ValueError:
+        pricing_date = today
+    seasonal_markup = seasonal_markup_for_date(pricing_date)
 
     context = {
         "role": role,
@@ -378,6 +413,9 @@ def room_detail(request, pk):
         "is_available": is_available,
         "is_occupied": is_occupied,
         "is_cleaning": (room.status or '').strip().lower() in ('dirty', 'cleaning'),
+        "pricing_date": pricing_date,
+        "seasonal_markup": seasonal_markup,
+        "seasonal_price": round(float(room.price) * (1 + seasonal_markup / 100), 2),
         "fd": fd,
         "ld": ld,
     }
@@ -669,15 +707,22 @@ def booking_make(request):
             return redirect("rooms")
 
         total_price = 0.0
+        base_total = 0.0
+        nightly_prices = []
         current_date = start_date
 
         while current_date < end_date:
-            nightly_rate = float(room.price)
-            active_seasons = Season.objects.filter(is_active=True, start_date__lte=current_date, end_date__gte=current_date)
-            if active_seasons.exists():
-                max_markup = max([float(s.markup_percentage) for s in active_seasons])
-                nightly_rate += nightly_rate * (max_markup / 100.0)
+            base_rate = round(float(room.price), 2)
+            markup = seasonal_markup_for_date(current_date)
+            nightly_rate = round(base_rate * (1 + markup / 100), 2)
             total_price += nightly_rate
+            base_total += base_rate
+            nightly_prices.append({
+                "date": current_date,
+                "base_rate": base_rate,
+                "markup": markup,
+                "rate": nightly_rate,
+            })
             current_date += timedelta(days=1)
 
         total = total_price
@@ -722,6 +767,9 @@ def booking_make(request):
         "guests": guests,
         "room": room,
         "total": total,
+        "base_total": base_total,
+        "numberOfDays": numberOfDays,
+        "nightly_prices": nightly_prices,
         "names": names
     }
 

@@ -258,6 +258,24 @@
         font-size: 12px;
     }
 
+    .room-detail-price-old {
+        color: #87938b;
+        font-size: 15px;
+        text-decoration: line-through;
+    }
+
+    .room-detail-price-season {
+        flex-basis: 100%;
+        color: #34724a;
+        font-family: "DM Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .room-detail-price-season.peak {
+        color: #98652d;
+    }
+
     .room-detail-section-title {
         margin: 0 0 12px;
         color: var(--room-ink);
@@ -491,8 +509,19 @@
                 </div>
 
                 <div class="room-detail-price">
+                    {% if seasonal_markup %}
+                    <span class="room-detail-price-old">Rs. {{ room.price }}</span>
+                    <strong>Rs. {{ seasonal_price|floatformat:2 }}</strong>
+                    <span>per night</span>
+                    {% if seasonal_markup < 0 %}
+                    <span class="room-detail-price-season">Save {{ seasonal_markup|cut:"-" }}% · Off-season rate for {{ pricing_date }}</span>
+                    {% else %}
+                    <span class="room-detail-price-season peak">Peak season +{{ seasonal_markup }}% · Rate for {{ pricing_date }}</span>
+                    {% endif %}
+                    {% else %}
                     <strong>Rs. {{ room.price }}</strong>
                     <span>per night</span>
+                    {% endif %}
                 </div>
 
                 <h3 class="room-detail-section-title">Included amenities</h3>

@@ -1,8 +1,8 @@
 <!--Admin Navbar-->
-<nav class="navbar navbar-expand-lg py-3 bg-white shadow-sm" role="navigation">
+<nav class="navbar navbar-expand-lg py-3 bg-white shadow-sm hms-navbar" role="navigation">
     <div class="container">
-        <a href="{% if request.user.is_authenticated and role == 'guest' %}{% url 'guest-dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="navbar-brand">
-            <h2 class="text-capitalize text-dark">
+        <a href="{% if request.user.is_authenticated and role == 'guest' %}{% url 'guest-dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="navbar-brand hms-navbar-brand">
+            <h2>
                 CrewMates Hotel
             </h2>
         </a>
@@ -17,11 +17,11 @@
             <ul class="navbar-nav ml-auto">
                 {% if request.resolver_match.url_name != 'rooms' %}
                 <li class="nav-item dropdown p-2">
-                    <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button"
+                    <a class="nav-link dropdown-toggle text-dark hms-navbar-link" href="#" id="navbarDropdown" role="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Options
                     </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <div class="dropdown-menu hms-navbar-menu" aria-labelledby="navbarDropdown">
 
                         <!--Dropdpwn items are changed by role-->
                         {% if role == 'admin' %}
@@ -65,16 +65,16 @@
                 </li>
                 <li class="nav-item mr-3 p-2">
                     {% if role == 'staff' or role == 'receptionist' or role == 'admin' or role == 'manager' or role == 'housekeeping' %}
-                    <a href="{% url 'employee-profile' user.id %}" class="nav-link">Profile</a>
+                    <a href="{% url 'employee-profile' user.id %}" class="nav-link hms-navbar-link">Profile</a>
                     {% endif %}
                     {% if role == 'guest' %}
-                    <a href="{% url 'guest-profile' user.id %}" class="nav-link">Profile</a>
+                    <a href="{% url 'guest-profile' user.id %}" class="nav-link hms-navbar-link">Profile</a>
                     {% endif %}
                 </li>
                 {% endif %}
                 {% if request.resolver_match.url_name != 'rooms' %}
                 <li class="nav-item p-2">
-                    <a href="{% url 'logout' %}" class="nav-link text-dark">Log Out</a>
+                    <a href="{% url 'logout' %}" class="nav-link text-dark hms-navbar-logout">Log Out</a>
                 </li>
                 {% endif %}
             </ul>
@@ -91,3 +91,126 @@
         </div>
     </div>
 </nav>
+
+<style>
+    .hms-navbar {
+        position: relative;
+        z-index: 1030;
+        min-height: 76px;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid #edf0ec;
+        background: rgba(255,255,255,.97) !important;
+        box-shadow: 0 4px 18px rgba(25,45,32,.055) !important;
+    }
+
+    .hms-navbar .container {
+        max-width: 1200px;
+    }
+
+    .hms-navbar-brand {
+        display: inline-flex;
+        align-items: center;
+        margin-right: auto;
+        padding: 7px 0;
+        color: #173d2b !important;
+    }
+
+    .hms-navbar-brand h2 {
+        margin: 0;
+        color: inherit;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: clamp(20px, 2vw, 25px);
+        font-weight: 700;
+        letter-spacing: -.035em;
+    }
+
+    .hms-navbar .navbar-nav {
+        align-items: center;
+        gap: 5px;
+    }
+
+    .hms-navbar-link,
+    .hms-navbar .nav-link {
+        display: inline-flex;
+        min-height: 39px;
+        align-items: center;
+        padding: 9px 13px !important;
+        border-radius: 7px;
+        color: #425148 !important;
+        font-size: 12px;
+        font-weight: 600;
+        transition: background .15s ease, color .15s ease;
+    }
+
+    .hms-navbar-link:hover,
+    .hms-navbar .nav-link:hover,
+    .hms-navbar .show > .nav-link {
+        background: #eff4ef;
+        color: #173d2b !important;
+    }
+
+    .hms-navbar-logout {
+        border: 1px solid #e1e8e1;
+        background: #fff;
+    }
+
+    .hms-navbar-logout:hover {
+        border-color: #cbd9cd;
+        background: #f5f8f4;
+    }
+
+    .hms-navbar-menu {
+        min-width: 205px;
+        margin-top: 8px;
+        padding: 7px;
+        border: 1px solid #e5ebe5;
+        border-radius: 10px;
+        box-shadow: 0 14px 35px rgba(25,45,32,.13);
+    }
+
+    .hms-navbar-menu .dropdown-item {
+        padding: 9px 11px;
+        border-radius: 6px;
+        color: #435148;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .hms-navbar-menu .dropdown-item:hover,
+    .hms-navbar-menu .dropdown-item:focus {
+        background: #eff4ef;
+        color: #173d2b;
+    }
+
+    .hms-navbar .navbar-toggler {
+        border-color: #dfe7df;
+        border-radius: 7px;
+        padding: 6px 9px;
+    }
+
+    @media (max-width: 991.98px) {
+        .hms-navbar .navbar-collapse {
+            padding-top: 10px;
+        }
+
+        .hms-navbar .navbar-nav {
+            align-items: stretch;
+            gap: 2px;
+        }
+
+        .hms-navbar .nav-item {
+            padding: 2px 0 !important;
+        }
+
+        .hms-navbar-link,
+        .hms-navbar .nav-link {
+            width: 100%;
+        }
+
+        .hms-navbar-menu {
+            margin-top: 3px;
+            box-shadow: none;
+        }
+    }
+</style>

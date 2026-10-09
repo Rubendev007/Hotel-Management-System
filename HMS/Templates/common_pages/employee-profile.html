@@ -1,120 +1,150 @@
-<div class="container">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+    body:has(.employee-profile-page) { background:#f5f6f2; color:#1b2b23; font-family:"DM Sans","Segoe UI",sans-serif; }
+    .employee-profile-page { --profile-forest:#173d2b; --profile-green:#2c7650; --profile-ink:#1b2b23; --profile-muted:#718078; --profile-line:#e2e8e2; min-height:calc(100vh - 170px); padding:clamp(28px,5vw,58px) 20px 64px; }
+    .employee-profile-page *, .employee-profile-page *::before, .employee-profile-page *::after { box-sizing:border-box; }
+    .employee-profile-shell { width:min(1060px,100%); margin:0 auto; }
+    .employee-profile-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:24px; }
+    .employee-profile-eyebrow { margin:0 0 7px; color:var(--profile-green); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
+    .employee-profile-heading h1 { margin:0; color:var(--profile-ink); font-family:"Playfair Display",Georgia,serif; font-size:clamp(30px,4vw,40px); font-weight:600; letter-spacing:-.03em; }
+    .employee-profile-heading p:last-child { margin:7px 0 0; color:var(--profile-muted); font-size:12px; }
+    .employee-profile-card { overflow:hidden; border:1px solid var(--profile-line); border-radius:13px; background:#fff; box-shadow:0 12px 36px rgba(27,43,35,.06); }
+    .employee-profile-banner { display:flex; align-items:center; gap:17px; padding:24px clamp(20px,4vw,34px); border-bottom:1px solid var(--profile-line); background:linear-gradient(115deg,#f5f8f3,#fff); }
+    .employee-profile-avatar { display:grid; width:58px; height:58px; flex:none; place-items:center; border:1px solid #d1e0d3; border-radius:50%; background:#eaf2e9; color:var(--profile-forest); font-family:"Playfair Display",Georgia,serif; font-size:22px; font-weight:600; }
+    .employee-profile-banner h2 { margin:0; color:var(--profile-ink); font-family:"Playfair Display",Georgia,serif; font-size:23px; font-weight:600; }
+    .employee-profile-banner p { margin:4px 0 0; color:var(--profile-muted); font-size:12px; }
+    .employee-profile-role { margin-left:auto; padding:7px 10px; border:1px solid #d1e0d3; border-radius:999px; background:#f4f8f2; color:#39734d; font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:capitalize; }
+    .employee-profile-body { padding:clamp(20px,4vw,34px); }
+    .employee-profile-section-title { margin:0 0 16px; color:var(--profile-ink); font-size:13px; font-weight:700; }
+    .employee-profile-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .employee-profile-field { min-width:0; padding:15px; border:1px solid #e9eee8; border-radius:8px; background:#fbfcfa; }
+    .employee-profile-field label { display:block; margin:0 0 7px; color:#7c8980; font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
+    .employee-profile-field .form-control { min-height:39px; padding:8px 10px; border:1px solid #dce4dc; border-radius:6px; background:#fff; color:var(--profile-ink); font:inherit; font-size:12px; }
+    .employee-profile-field .form-control:focus { border-color:#6da581; outline:3px solid rgba(83,151,105,.13); box-shadow:none; }
+    .employee-profile-value { display:block; overflow-wrap:anywhere; color:#2b3c32; font-size:13px; font-weight:500; }
+    .employee-profile-actions { display:flex; justify-content:flex-end; margin-top:19px; }
+    .employee-profile-save { min-height:41px; padding:9px 16px; border:1px solid var(--profile-forest); border-radius:7px; background:var(--profile-forest); color:#fff; font:inherit; font-size:12px; font-weight:700; transition:background .15s ease; }
+    .employee-profile-save:hover { background:#24583d; }
+    .employee-task-section { margin-top:30px; }
+    .employee-task-section h2 { margin:0 0 14px; color:var(--profile-ink); font-family:"Playfair Display",Georgia,serif; font-size:23px; font-weight:600; }
+    .employee-task-table-card { overflow:hidden; border:1px solid var(--profile-line); border-radius:10px; background:#fff; box-shadow:0 6px 20px rgba(27,43,35,.04); }
+    .employee-task-table-card .table-responsive { margin:0; }
+    .employee-task-table { margin:0; color:#526158; font-size:12px; }
+    .employee-task-table thead th { padding:12px 15px; border-bottom:1px solid var(--profile-line); background:#f8faf7; color:#78857c; font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
+    .employee-task-table tbody td { padding:13px 15px; border-color:#edf0ec; vertical-align:middle; }
+    .employee-task-table tbody tr:last-child td { border-bottom:0; }
+    .employee-task-empty { color:var(--profile-muted); text-align:center; }
+    @media(max-width:600px) {
+        .employee-profile-page { padding:25px 15px 42px; }
+        .employee-profile-heading { align-items:flex-start; flex-direction:column; }
+        .employee-profile-fields { grid-template-columns:1fr; gap:10px; }
+        .employee-profile-banner { flex-wrap:wrap; }
+        .employee-profile-role { margin-left:0; }
+    }
+</style>
 
-    <form action="" method="POST">
-        {% csrf_token %}
-        <div class="row mt-5 clearfix">
-            <div class="col-6">
+<section class="employee-profile-page">
+    <div class="employee-profile-shell">
+        <header class="employee-profile-heading">
+            <div>
+                <p class="employee-profile-eyebrow">CrewMates · Account</p>
+                <h1>Profile</h1>
+                <p>View and manage employee information.</p>
+            </div>
+        </header>
 
-
-                <div class="p-2 h4">
-                    <span>Name:</span>
-                    {% if employee.user.id != request.user.id %}
-                    <span class="font-weight-normal">{{employee.user.first_name}} </span>
-                    {% else %}
-                    <input type="text" class="form-control border border-secondary" id="id_first_name"
-                        value="{{employee.user.first_name}}" name="first_name">
-                    {% endif %}
+        <article class="employee-profile-card">
+            <div class="employee-profile-banner">
+                <div class="employee-profile-avatar" aria-hidden="true">{{ employee.user.first_name|default:employee.user.username|slice:":1"|upper }}</div>
+                <div>
+                    <h2>{{ employee.user.first_name }} {{ employee.user.last_name }}</h2>
+                    <p>{{ employee.user.email|default:"Employee account" }}</p>
                 </div>
-
-                <div class="p-2 h4">
-                    <span>Surname:</span>
-                    {% if employee.user.id != request.user.id %}
-                    <span class="font-weight-normal"> {{employee.user.last_name}}</span>
-                    {% else %}
-                    <input type="text" class="form-control border border-secondary" id="id_last_name"
-                        value="{{employee.user.last_name}}" name="last_name">
-                    {% endif %}
-                </div>
-
-
-
-                <br>
-
-                <div class="p-2 h4">
-                    <span>Email :</span>
-                    <span class="font-weight-normal">{{employee.user.email}}</span>
-                </div>
-
-                <br>
-
-                <div class="p-2 h4">
-                    <span>Creation Date:</span>
-                    <span class="font-weight-normal">{{employee.user.date_joined}}</span>
-                </div>
-
+                <span class="employee-profile-role">{{ employee.user.groups.first|default:role }}</span>
             </div>
 
-            <div class="col-6">
-
-                <div class="p-2 h4">
-                    <span>Phone Number: </span>
-                    {% if employee.user.id != request.user.id %}
-
-                    <span class="font-weight-normal">{{employee.phoneNumber}}</span>
-                    {% else %}
-                    <input type="text" class="form-control border border-secondary" id="id_phoneNumber"
-                        value="{{employee.phoneNumber}}" name="phoneNumber">
+            <div class="employee-profile-body">
+                <h3 class="employee-profile-section-title">Personal and employment details</h3>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <div class="employee-profile-fields">
+                        <div class="employee-profile-field">
+                            <label for="id_first_name">First name</label>
+                            {% if employee.user.id != request.user.id %}
+                            <span class="employee-profile-value">{{ employee.user.first_name|default:"Not provided" }}</span>
+                            {% else %}
+                            <input type="text" class="form-control" id="id_first_name" value="{{ employee.user.first_name }}" name="first_name">
+                            {% endif %}
+                        </div>
+                        <div class="employee-profile-field">
+                            <label for="id_last_name">Surname</label>
+                            {% if employee.user.id != request.user.id %}
+                            <span class="employee-profile-value">{{ employee.user.last_name|default:"Not provided" }}</span>
+                            {% else %}
+                            <input type="text" class="form-control" id="id_last_name" value="{{ employee.user.last_name }}" name="last_name">
+                            {% endif %}
+                        </div>
+                        <div class="employee-profile-field">
+                            <label>Email address</label>
+                            <span class="employee-profile-value">{{ employee.user.email|default:"Not provided" }}</span>
+                        </div>
+                        <div class="employee-profile-field">
+                            <label for="id_phoneNumber">Phone number</label>
+                            {% if employee.user.id != request.user.id %}
+                            <span class="employee-profile-value">{{ employee.phoneNumber|default:"Not provided" }}</span>
+                            {% else %}
+                            <input type="text" class="form-control" id="id_phoneNumber" value="{{ employee.phoneNumber }}" name="phoneNumber">
+                            {% endif %}
+                        </div>
+                        <div class="employee-profile-field">
+                            <label>Role</label>
+                            <span class="employee-profile-value">{{ employee.user.groups.first|default:role }}</span>
+                        </div>
+                        <div class="employee-profile-field">
+                            <label>Salary</label>
+                            <span class="employee-profile-value">Rs. {{ employee.salary }}</span>
+                        </div>
+                        <div class="employee-profile-field">
+                            <label>Account created</label>
+                            <span class="employee-profile-value">{{ employee.user.date_joined }}</span>
+                        </div>
+                    </div>
+                    {% if employee.user.id == request.user.id %}
+                    <div class="employee-profile-actions">
+                        <button type="submit" name="submit" class="employee-profile-save">Save changes</button>
+                    </div>
                     {% endif %}
-                </div>
-
-                <br>
-
-                <div class="p-2 h4">
-                    <span>Role :</span>
-                    <span class="font-weight-normal">{{employee.user.groups.first}}</span>
-                </div>
-
-                <br>
-
-                <div class="p-2 h4">
-                    <span>Salary:</span>
-                    <span class="font-weight-normal">{{employee.salary}}</span>
-                </div>
-
+                </form>
             </div>
-        </div>
-        {% if employee.user.id == request.user.id %}
-        <button type="submit" name="submit" class="btn btn-success float-right">Save Changes</button>
+        </article>
+
+        {% if role != 'housekeeping' and role != 'staff' and request.user != employee.user %}
+        <section class="employee-task-section">
+            <h2>Task list</h2>
+            <div class="employee-task-table-card">
+                <div class="table-responsive">
+                    <table class="table employee-task-table">
+                        <thead>
+                            <tr><th>Task ID</th><th>Start date</th><th>End date</th><th>Description</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for tasks in tasks %}
+                            <tr>
+                                <td>#{{ tasks.id }}</td>
+                                <td>{{ tasks.startTime }}</td>
+                                <td>{{ tasks.endTime|default:"—" }}</td>
+                                <td>{{ tasks.description }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="employee-task-empty py-4">No tasks to display.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
         {% endif %}
-        <br>
-    </form>
-    <br>
-
-    {% if role != 'housekeeping' and role != 'staff' and request.user != employee.user %}
-    <div class="table-responsive my-5">
-        <div class="table-header row">
-
-            <div class="col-sm-12 col-md-12 col-lg-4 mb-4">
-                <h2>Task List</h2>
-            </div>
-
-        </div>
-
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Task ID</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for tasks in tasks %}
-                <tr>
-                    <td>{{tasks.id}}</td>
-                    <td>{{tasks.startTime}}</td>
-                    <td>{{tasks.endTime}}</td>
-                    <td>{{tasks.description}}</td>
-                </tr>
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
     </div>
-    {% endif %}
-
-</div>
+</section>

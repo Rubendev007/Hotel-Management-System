@@ -42,6 +42,12 @@
   .room-card-body .badge-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap;}
   .badge{padding:3px 7px;border-radius:3px;background:#e1f2e5;color:#277143;font-size:8px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
   .price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:var(--forest);line-height:1;}
+  .price-stack{display:flex;align-items:baseline;justify-content:flex-end;flex-wrap:wrap;gap:5px 8px;text-align:right;}
+  .price-original{color:var(--muted);font-size:12px;text-decoration:line-through;text-decoration-thickness:1px;}
+  .price-current{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;color:var(--forest);line-height:1;}
+  .price-season-label{width:100%;color:#34724a;font-size:9px;font-weight:700;letter-spacing:.025em;}
+  .price-season-label.peak{color:#98652d;}
+  .price-period{color:var(--muted);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:400;}
   .room-card-body h3{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:500;margin:6px 0 4px;line-height:1.15;}
   .room-card-body p.meta{color:var(--muted);font-size:9px;margin:0 0 10px;line-height:1.4;}
   .room-card-actions{margin-top:auto;padding:12px 16px 16px;border-top:1px solid var(--line);display:flex;align-items:stretch;gap:8px;}
@@ -134,7 +140,19 @@
             <div class="room-card-body">
               <div class="badge-row">
                 <span class="badge">{{ room.roomType }}</span>
-                <span class="price">Rs. {{ room.price }}/night</span>
+                <span class="price-stack">
+                  {% if room.seasonal_markup < 0 %}
+                  <span class="price-original">Rs. {{ room.price }}</span>
+                  <span class="price-current">Rs. {{ room.seasonal_price|floatformat:2 }}</span>
+                  <span class="price-season-label">Save {{ room.seasonal_markup|cut:"-" }}% · Off-season{% if pricing_date %} · {{ pricing_date }}{% endif %}</span>
+                  {% elif room.seasonal_markup > 0 %}
+                  <span class="price-original">Rs. {{ room.price }}</span>
+                  <span class="price-current">Rs. {{ room.seasonal_price|floatformat:2 }}</span>
+                  <span class="price-season-label peak">Peak season +{{ room.seasonal_markup }}%{% if pricing_date %} · {{ pricing_date }}{% endif %}</span>
+                  {% else %}
+                  <span class="price">Rs. {{ room.price }}<span class="price-period"> /night</span></span>
+                  {% endif %}
+                </span>
               </div>
               <h3>Room {{ room.number }}</h3>
               <p class="meta"><i class="fas fa-users mr-1"></i>{{ room.capacity }} guests · <i class="fas fa-bed mr-1"></i>{{ room.numberOfBeds }} beds</p>

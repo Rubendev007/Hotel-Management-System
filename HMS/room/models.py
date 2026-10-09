@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from accounts.models import Guest
 # Create your models here.
@@ -87,3 +88,9 @@ class Season(models.Model):
 
     def __str__(self):
         return f"{self.name} (+{self.markup_percentage}%)"
+
+    def clean(self):
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": "End date must be on or after the start date."})
+        if self.markup_percentage is not None and self.markup_percentage < -100:
+            raise ValidationError({"markup_percentage": "Markup cannot be lower than -100%."})

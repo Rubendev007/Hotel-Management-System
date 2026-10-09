@@ -58,6 +58,11 @@ urlpatterns = [
     path('employee-edit/<str:pk>/', employee_details_edit, name="employee-edit"),
     path('employee-add/', add_employee, name="add-employee"),
     path('dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('dashboard/seasons/', seasons, name='seasons'),
+    path('dashboard/seasons/new/', season_create, name='season-create'),
+    path('dashboard/seasons/<int:pk>/edit/', season_edit, name='season-edit'),
+    path('dashboard/seasons/<int:pk>/delete/', season_delete, name='season-delete'),
+    path('dashboard/seasons/<int:pk>/toggle/', season_toggle, name='season-toggle'),
 
     path('guest-edit/<str:pk>', guest_edit, name="guest-edit"),
     path('guest-profile/<str:pk>', guest_profile, name="guest-profile"),
