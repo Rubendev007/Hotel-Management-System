@@ -1,0 +1,26 @@
+{% extends '../index.html' %}
+{% block context %}
+<div class="container py-5">
+    {% if current_booking %}
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h1 class="h3">Room {{ current_booking.roomNumber.number }}</h1>
+            <p><strong>Room Type:</strong> {{ current_booking.roomNumber.roomType }}</p>
+            <p><strong>From:</strong> {{ current_booking.startDate }}</p>
+            <p><strong>To:</strong> {{ current_booking.endDate }}</p>
+            <span class="badge {% if current_booking.endDate < today %}bg-secondary{% else %}bg-success{% endif %}">
+                {% if current_booking.endDate < today %}Completed{% else %}Active{% endif %}
+            </span>
+            <a href="{% url 'room-detail' current_booking.roomNumber.number %}" class="btn btn-outline-primary d-block mt-3">
+                View Room Details
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p class="mb-3">No room booked currently. Please book a room first to see details.</p>
+        <a href="{% url 'rooms' %}" class="btn btn-primary">Book a Room</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

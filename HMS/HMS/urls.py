@@ -61,6 +61,7 @@ urlpatterns = [
 
     path('guest-edit/<str:pk>', guest_edit, name="guest-edit"),
     path('guest-profile/<str:pk>', guest_profile, name="guest-profile"),
+    path('my-room/', my_room, name="my-room"),
     path('room-profile/<str:id>/', room_profile, name="room-profile"),
     path('room-edit/<str:pk>/', room_edit, name="room-edit"),
     path('error/', error, name="error"),
@@ -93,4 +94,3 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

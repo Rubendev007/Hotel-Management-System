@@ -76,10 +76,10 @@
   <div class="room-card amber" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Needs Cleaning" data-guest="none">
     <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-amber">Needs Cleaning</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
     <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
     <div class="action-row"><a href="{% url 'mark-cleaned' r.number %}" class="btn btn-outline-warning">Mark Cleaned</a></div>
   </div>
-{% elif r.number in active_booking_ids %}
+{% elif r.is_unavailable %}
   {% with status_label="Occupied" status_cls="red" badge_cls="badge-red" %}
   <div class="room-card red" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Occupied" data-guest="{% if r.booking_set.all.last %}{{ r.booking_set.all.last.guest.user.username }}{% else %}none{% endif %}">
     <div class="d-flex justify-content-between align-items-start mb-2">
@@ -87,7 +87,7 @@
       <h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2>
     </div>
     <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
     <div style="font-size:.8rem;color:#6b7280;margin-bottom:.75rem;">
       <i class="fas fa-user mr-1"></i>{% with b=r.booking_set.all.last %}{% if b and b.guest %}{{ b.guest.user.username }}{% else %} - {% endif %}{% endwith %}
     </div>
@@ -101,7 +101,7 @@
   <div class="room-card green" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Available" data-guest="none">
     <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-green">Available</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
     <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  ${{ r.price }}/night</p>
+    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
     <div class="action-row"><button class="btn btn-outline-primary" onclick="checkInModal({{ r.number }})">Check-In</button><a href="{% url 'room-detail' r.number %}" class="btn btn-outline-secondary">View</a></div>
   </div>
 {% endif %}
@@ -121,8 +121,8 @@
 <label>Room</label><select name="room_number" id="roomSelect" required>
 <option value="">-- Select Room --</option>
 {% for r in rooms %}
-{% if r.number in active_booking_ids %}{% elif r.status_start and r.status_end and r.status_end < today %}{% elif r.status_start and r.status_start > today %}{% else %}
-<option value="{{ r.number }}">{{ r.number }} — {{ r.roomType }} (${{ r.price }}/night)</option>
+{% if r.is_unavailable %}{% else %}
+<option value="{{ r.number }}">{{ r.number }} — {{ r.roomType }} (Rs. {{ r.price }}/night)</option>
 {% endif %}{% endfor %}
 </select>
 <label>Check-In</label><input type="date" class="form-control" name="check_in" value="{{ today|date:'Y-m-d' }}" min="2026-01-01" max="2035-12-31" required>

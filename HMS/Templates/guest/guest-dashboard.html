@@ -19,10 +19,11 @@
                 <div class="card-body">
                     {% if active %}
                     <h4 class="font-weight-bold">Room {{ active.roomNumber.number }}</h4>
-                    <p class="text-muted mb-2">{{ active.startDate }} → {{ active.endDate }}</p>
-                    <span class="badge badge-success badge-pill">Checked In</span>
+                    <p class="text-muted mb-2"><strong>From:</strong> {{ active.startDate }}<br><strong>To:</strong> {{ active.endDate }}</p>
+                    <span class="badge badge-success badge-pill">{% if active.endDate < today %}Completed{% else %}Active{% endif %}</span>
                     {% else %}
-                    <p class="text-muted">No active reservation. <a href="{% url 'rooms' %}" class="btn btn-sm btn-outline-primary mt-2">Explore Rooms</a></p>
+                    <p class="text-muted">No room booked currently. Please book a room first to see details.</p>
+                    <a href="{% url 'rooms' %}" class="btn btn-sm btn-outline-primary mt-2">Book a Room</a>
                     {% endif %}
                 </div>
             </div>

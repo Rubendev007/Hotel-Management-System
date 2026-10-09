@@ -8,7 +8,7 @@
           <span class="badge bg-light text-dark fs-6 px-3 py-2">{{ room.roomType }}</span>
         </div>
         <div class="text-end">
-          <div class="h3 fw-bold mb-0">${{ room.price }}</div>
+          <div class="h3 fw-bold mb-0">Rs. {{ room.price }}</div>
           <div class="small opacity-75">per night</div>
         </div>
       </div>
@@ -47,7 +47,7 @@
                   <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-currency-dollar"></i></div>
                   <div>
                     <div class="small text-muted">Base Rate</div>
-                    <div class="fw-bold">${{ room.price }}</div>
+                    <div class="fw-bold">Rs. {{ room.price }}</div>
                   </div>
                 </div>
               </div>
@@ -130,7 +130,7 @@
               {% if role != 'guest' %}<td><a href="{% url 'guest-profile' bo.guest.user.id %}" class="text-decoration-none">{{ bo.guest.user.first_name }} {{ bo.guest.user.last_name }}</a></td>{% endif %}
               <td><span class="badge bg-primary">From {{ bo.startDate }}</span></td>
               <td><span class="badge bg-info text-dark">To {{ bo.endDate }}</span></td>
-              <td><span class="badge bg-success">Active</span></td>
+              <td><span class="badge {% if bo.endDate < today %}bg-secondary{% else %}bg-success{% endif %}">{% if bo.endDate < today %}Completed{% else %}Active{% endif %}</span></td>
             </tr>
             {% empty %}
             <tr><td colspan="4" class="text-center text-muted">No reservations.</td></tr>

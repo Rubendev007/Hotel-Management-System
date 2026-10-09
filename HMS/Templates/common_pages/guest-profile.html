@@ -60,7 +60,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="thead-light"><tr><th>Reservation</th><th>Check In</th><th>Check Out</th><th>Residents</th><th>Status</th><th>Action</th></tr></thead>
+                            <thead class="thead-light"><tr><th>Reservation</th><th>From</th><th>To</th><th>Residents</th><th>Status</th><th>Action</th></tr></thead>
                             <tbody>
                                 {% for bo in bookings %}
                                 <tr>
@@ -68,7 +68,7 @@
                                     <td>{{ bo.startDate }}</td>
                                     <td>{{ bo.endDate }}</td>
                                     <td>{{ bo.numOfResidents }}</td>
-                                    <td><span class="badge badge-pill {% if bo.endDate|date:'Y-m-d' >= today|date:'Y-m-d' %}badge-success{% else %}badge-warning{% endif %}">{% if bo.endDate|date:'Y-m-d' >= today|date:'Y-m-d' %}Active{% else %}Completed{% endif %}</span></td>
+                                    <td><span class="badge badge-pill {% if bo.endDate < today %}badge-warning{% else %}badge-success{% endif %}">{% if bo.endDate < today %}Completed{% else %}Active{% endif %}</span></td>
                                     <td>
                                         {% if role == "guest" %}
                                         <form action="{% url 'request-refund' %}" method="POST" class="mb-0">

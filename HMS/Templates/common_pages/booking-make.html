@@ -18,7 +18,7 @@
                             <div class="col-6"><strong>Type:</strong> {{ room.roomType }}</div>
                             <div class="col-6"><strong>Capacity:</strong> {{ room.capacity }} guests</div>
                             <div class="col-6"><strong>Beds:</strong> {{ room.numberOfBeds }}</div>
-                            <div class="col-6"><strong>Price / night:</strong> ${{ room.price }}</div>
+                            <div class="col-6"><strong>Price / night:</strong> Rs. {{ room.price }}</div>
                         </div>
                         <hr class="my-2">
                         <div><strong>Dates:</strong> {{ fd }} → {{ ld }}</div>
@@ -78,10 +78,10 @@
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between px-0">
-                            <span>Room {{ room.number }}</span><span>${{ room.price }}</span>
+                            <span>Room {{ room.number }}</span><span>Rs. {{ room.price }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0 bg-light">
-                            <span><strong>Subtotal</strong></span><span><strong>${{ total }}</strong></span>
+                            <span><strong>Subtotal</strong></span><span><strong>Rs. {{ total }}</strong></span>
                         </li>
                     </ul>
                     <div class="mt-3 text-center text-muted small">

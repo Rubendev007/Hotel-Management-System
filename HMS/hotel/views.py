@@ -525,22 +525,25 @@ def verify(request):
     return render(request, path + "verify.html", {"role": role})
 
 def guest_dashboard(request):
-    from django.utils import timezone
     from accounts.models import Guest
+    if not request.user.is_authenticated:
+        return redirect("login")
+
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else "guest"
-    if not request.user.is_authenticated: return redirect("login")
-    try:
-        guest = Guest.objects.get(user=request.user)
-        active = Booking.objects.filter(guest=guest, endDate__gte=timezone.now().date()).first()
-    except:
-        active = None
-    try:
-        past = Booking.objects.filter(guest=guest)
-    except:
-        past = []
-    events = Event.objects.filter(startDate__gte=timezone.now().date())[:3]
-    context = {"role":role,"guest":request.user,"active":active,"past_count":past.count() if hasattr(past,"count") else len(past),"events":events}
+    today = date.today()
+    guest = Guest.objects.filter(user=request.user).first()
+    active = Booking.objects.filter(guest=guest, endDate__gte=today).order_by('-startDate').first() if guest else None
+    past_count = Booking.objects.filter(guest=guest, endDate__lt=today).count() if guest else 0
+    events = Event.objects.filter(startDate__gte=today)[:3]
+    context = {
+        "role": role,
+        "guest": request.user,
+        "active": active,
+        "past_count": past_count,
+        "events": events,
+        "today": today,
+    }
     path = role + "/" if role else "guest/"
     return render(request, path + "guest-dashboard.html", context)
 
@@ -552,12 +555,16 @@ def admin_dashboard(request):
         return redirect('home')
     from room.models import Room, Booking, RoomServices
     from django.contrib.auth.models import User
-    from hotel.models import Employee
+    today = date.today()
+    active_bookings = Booking.objects.filter(endDate__gte=today)
     context = {
         "role": role,
         "total_rooms": Room.objects.count(),
-        "active_bookings": Booking.objects.all().order_by('-id')[:5],
+        "active_bookings": active_bookings.order_by('-id')[:5],
+        "active_booking_count": active_bookings.count(),
         "pending_services": RoomServices.objects.all().order_by('-id')[:5],
-        "total_employees": User.objects.filter(groups__name__in=["manager","admin","receptionist"]).count() + Employee.objects.count(),
+        "total_employees": User.objects.filter(
+            groups__name__in=['staff', 'receptionist', 'housekeeping', 'manager']
+        ).distinct().count(),
     }
     return render(request, "admin/admin-dashboard.html", context)

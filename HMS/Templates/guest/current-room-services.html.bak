@@ -58,7 +58,7 @@
                     <tbody>
                         <tr>
                             <td>Food</td>
-                            <td>$50</td>
+                            <td>Rs. 50</td>
                             <td><button name="foodReq" type="submit" class="btn btn-info">Request</button></td>
                         </tr>
                         <tr>

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from io import StringIO
 from smtplib import SMTPException
 from unittest.mock import patch
@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Guest
+from .forms import editBooking
 from .models import Booking, Room
 
 
@@ -59,6 +60,136 @@ class BookingStabilizationTests(TestCase):
         self.assertEqual(render.call_args.args[1], "guest/rooms.html")
         self.assertEqual(render.call_args.args[2]["role"], "guest")
 
+    def test_my_room_without_active_booking_shows_booking_notice(self):
+        today = date.today()
+        Booking.objects.create(
+            guest=self.guest, roomNumber=self.room,
+            startDate=today - timedelta(days=3),
+            endDate=today - timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("my-room"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["current_booking"])
+        self.assertContains(
+            response,
+            "No room booked currently. Please book a room first to see details.",
+        )
+
+    def test_my_room_shows_active_booking(self):
+        today = date.today()
+        booking = Booking.objects.create(
+            guest=self.guest, roomNumber=self.room,
+            startDate=today, endDate=today + timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("my-room"))
+
+        self.assertEqual(response.context["current_booking"], booking)
+        self.assertContains(response, "Room 101")
+
+    def test_guest_dashboard_counts_only_past_guest_bookings(self):
+        today = date.today()
+        Booking.objects.create(
+            guest=self.guest, roomNumber=self.room,
+            startDate=today - timedelta(days=3),
+            endDate=today - timedelta(days=1),
+        )
+        active_booking = Booking.objects.create(
+            guest=self.guest, roomNumber=self.room,
+            startDate=today, endDate=today + timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("guest-dashboard"))
+
+        self.assertEqual(response.context["past_count"], 1)
+        self.assertEqual(response.context["active"], active_booking)
+
+    def test_booking_make_rejects_past_checkin_and_invalid_checkout(self):
+        today = date.today()
+        for check_in, check_out in (
+            (today - timedelta(days=1), today + timedelta(days=1)),
+            (today, today),
+        ):
+            with self.subTest(check_in=check_in, check_out=check_out):
+                response = self.client.post(reverse("booking-make"), {
+                    "roomid": self.room.pk,
+                    "fd": check_in.isoformat(),
+                    "ld": check_out.isoformat(),
+                })
+                self.assertRedirects(
+                    response, reverse("rooms"), fetch_redirect_response=False)
+        self.assertFalse(Booking.objects.exists())
+
+    def test_booking_make_rejects_overlapping_booking(self):
+        today = date.today()
+        Booking.objects.create(
+            guest=self.guest,
+            roomNumber=self.room,
+            startDate=today + timedelta(days=2),
+            endDate=today + timedelta(days=4),
+        )
+        response = self.client.post(reverse("booking-make"), {
+            "roomid": self.room.pk,
+            "fd": (today + timedelta(days=4)).isoformat(),
+            "ld": (today + timedelta(days=6)).isoformat(),
+            "bookGuestButton": "",
+            "name1": "",
+        })
+
+        self.assertRedirects(
+            response, reverse("rooms"), fetch_redirect_response=False)
+        self.assertEqual(Booking.objects.count(), 1)
+
+    def test_receptionist_express_checkin_rejects_overlapping_booking(self):
+        self.user.groups.add(Group.objects.create(name="receptionist"))
+        today = date.today()
+        Booking.objects.create(
+            guest=self.guest,
+            roomNumber=self.room,
+            startDate=today + timedelta(days=1),
+            endDate=today + timedelta(days=3),
+        )
+
+        response = self.client.post(reverse("rooms"), {
+            "guest_name": "Another Guest",
+            "room_number": self.room.number,
+            "check_in": (today + timedelta(days=3)).isoformat(),
+            "check_out": (today + timedelta(days=5)).isoformat(),
+        })
+
+        self.assertRedirects(
+            response, reverse("rooms"), fetch_redirect_response=False)
+        self.assertEqual(Booking.objects.count(), 1)
+
+    def test_receptionist_room_grid_marks_current_room_unavailable(self):
+        self.user.groups.add(Group.objects.create(name="receptionist"))
+        today = date.today()
+        Booking.objects.create(
+            guest=self.guest,
+            roomNumber=self.room,
+            startDate=today,
+            endDate=today + timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("rooms"))
+
+        self.assertTrue(response.context["rooms"][0].is_unavailable)
+
+    def test_edit_booking_form_validates_booking_dates(self):
+        today = date.today()
+        for check_in, check_out in (
+            (today - timedelta(days=1), today + timedelta(days=1)),
+            (today, today),
+        ):
+            with self.subTest(check_in=check_in, check_out=check_out):
+                form = editBooking(data={
+                    "startDate": check_in.isoformat(),
+                    "endDate": check_out.isoformat(),
+                })
+                self.assertFalse(form.is_valid())
+
     def test_home_without_group_redirects_to_guest_profile(self):
         response = self.client.get(reverse("home"))
         self.assertRedirects(response, reverse("guest-profile", args=[self.user.pk]),
@@ -81,8 +212,12 @@ class BookingStabilizationTests(TestCase):
         self.assertEqual(self.guest.currentRoom(), self.room)
 
     def test_creation_stores_booking_in_session(self):
+        check_in = date.today() + timedelta(days=1)
+        check_out = check_in + timedelta(days=2)
         response = self.client.post(reverse("booking-make"), {
-            "roomid": self.room.pk, "fd": "2026-10-01", "ld": "2026-10-03",
+            "roomid": self.room.pk,
+            "fd": check_in.isoformat(),
+            "ld": check_out.isoformat(),
             "bookGuestButton": "", "name1": ""})
         self.assertRedirects(response, reverse("payment"), fetch_redirect_response=False)
         self.assertEqual(self.client.session["booking_id"], Booking.objects.get().pk)

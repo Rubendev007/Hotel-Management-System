@@ -22,6 +22,23 @@ from .forms import *
 from housekeeping_utils import rebalance_cleaning_tasks
 
 
+def room_unavailable_for_dates(room, check_in, check_out):
+    if (room.status or '').lower() == 'occupied':
+        return True
+    if (
+        room.statusStartDate
+        and room.statusEndDate
+        and room.statusStartDate <= check_out
+        and room.statusEndDate >= check_in
+    ):
+        return True
+    return Booking.objects.filter(
+        roomNumber=room,
+        endDate__gte=check_in,
+        startDate__lte=check_out,
+    ).exists()
+
+
 
 def csrf_failure(request, reason=""):
     messages.error(request, "Your session expired or changed. Please try logging in again.")
@@ -41,29 +58,12 @@ def rooms(request):
     lastDateStr = None
 
     def chech_availability(fd, ed):
-        availableRooms = []
-        for room in rooms:
-            availList = []
-            bookingList = Booking.objects.filter(roomNumber=room)
-            if room.statusStartDate == None:
-                for booking in bookingList:
-                    if booking.startDate > ed.date() or booking.endDate < fd.date():
-                        availList.append(True)
-                    else:
-                        availList.append(False)
-                if all(availList):
-                    availableRooms.append(room)
-            else:
-                if room.statusStartDate > ed.date() or room.statusEndDate < fd.date():
-                    for booking in bookingList:
-                        if booking.startDate > ed.date() or booking.endDate < fd.date():
-                            availList.append(True)
-                        else:
-                            availList.append(False)
-                        if all(availList):
-                            availableRooms.append(room)
-
-        return availableRooms
+        check_in = fd.date()
+        check_out = ed.date()
+        return [
+            room for room in rooms
+            if not room_unavailable_for_dates(room, check_in, check_out)
+        ]
 
     if request.method == "POST":
         if "guest_name" in request.POST:
@@ -80,15 +80,21 @@ def rooms(request):
                 messages.error(request, "Please select a valid room.")
                 return redirect("rooms")
 
-            # Validate room is NOT already occupied (ONLY by active Booking records)
             today = date.today()
-            is_booked = Booking.objects.filter(
-                roomNumber=room,
-                startDate__lte=today,
-                endDate__gte=today
-            ).exists()
-            if is_booked:
-                messages.warning(request, f"Room {room.number} is currently unavailable — it is already occupied.")
+            try:
+                sd = datetime.strptime(request.POST.get("check_in", str(today)), '%Y-%m-%d').date()
+                ed = datetime.strptime(request.POST.get("check_out", str(today + timedelta(days=1))), '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                messages.error(request, "Please enter valid check-in and check-out dates.")
+                return redirect("rooms")
+            if sd < today:
+                messages.error(request, "Check-in date cannot be in the past.")
+                return redirect("rooms")
+            if ed <= sd:
+                messages.error(request, "Check-out date must be after check-in date.")
+                return redirect("rooms")
+            if room_unavailable_for_dates(room, sd, ed):
+                messages.error(request, "This room is already booked/occupied for the selected dates.")
                 return redirect("rooms")
 
             # Get or create Guest profile
@@ -117,19 +123,6 @@ def rooms(request):
                 if not guest:
                     guest = Guest.objects.create(user=user, phoneNumber=guest_phone or "+0000000000")
 
-            sd = datetime.strptime(request.POST.get("check_in", str(today)), '%Y-%m-%d').date()
-            ed = datetime.strptime(request.POST.get("check_out", str(today + timedelta(days=1))), '%Y-%m-%d').date()
-
-            # Date overlap validation — prevent double booking
-            overlapping = Booking.objects.filter(
-                roomNumber=room,
-                startDate__lt=ed,
-                endDate__gt=sd
-            ).exists()
-            if overlapping:
-                messages.error(request, "Room is already booked for the selected dates.")
-                return redirect("rooms")
-
             room.statusStartDate = sd
             room.statusEndDate = ed
             room.save()
@@ -141,8 +134,15 @@ def rooms(request):
             firstDayStr = request.POST.get("fd", "")
             lastDateStr = request.POST.get("ld", "")
 
-            firstDay = datetime.strptime(firstDayStr, '%Y-%m-%d')
-            lastDate = datetime.strptime(lastDateStr, '%Y-%m-%d')
+            try:
+                firstDay = datetime.strptime(firstDayStr, '%Y-%m-%d')
+                lastDate = datetime.strptime(lastDateStr, '%Y-%m-%d')
+            except (ValueError, TypeError):
+                messages.error(request, "Please select valid availability dates.")
+                return redirect("rooms")
+            if lastDate.date() < firstDay.date():
+                messages.error(request, "The end date must be on or after the start date.")
+                return redirect("rooms")
 
             rooms = chech_availability(firstDay, lastDate)
 
@@ -180,8 +180,22 @@ def rooms(request):
 
     from datetime import date as dt
     today = dt.today()
-    # Dynamic status: occupied if active booking exists today
-    active_booking_ids = list(Booking.objects.filter(startDate__lte=today, endDate__gte=today).values_list('roomNumber_id', flat=True))
+    active_booking_ids = list(Booking.objects.filter(
+        startDate__lte=today,
+        endDate__gte=today,
+    ).values_list('roomNumber_id', flat=True))
+    unavailable_room_ids = set(active_booking_ids)
+    unavailable_room_ids.update(
+        Room.objects.filter(status__iexact='occupied').values_list('number', flat=True)
+    )
+    unavailable_room_ids.update(
+        Room.objects.filter(
+            statusStartDate__lte=today,
+            statusEndDate__gte=today,
+        ).values_list('number', flat=True)
+    )
+    for room in rooms:
+        room.is_unavailable = room.number in unavailable_room_ids
     context = {
         "role": role,
         'rooms': rooms,
@@ -190,6 +204,7 @@ def rooms(request):
         'today': today,
         'tomorrow': today + __import__('datetime').timedelta(days=1),
         'active_booking_ids': active_booking_ids,
+        'unavailable_room_ids': unavailable_room_ids,
     }
     return render(request, path + "rooms.html", context)
 
@@ -241,7 +256,8 @@ def room_profile(request, id):
         "bookings": bookings,
         "room": tempRoom,
         "guests": guests,
-        "bookings2": bookings2
+        "bookings2": bookings2,
+        "today": date.today(),
     }
 
     if request.method == "POST":
@@ -335,14 +351,18 @@ def room_detail(request, pk):
         try:
             sd = datetime.strptime(request.POST.get("fd", str(today)), "%Y-%m-%d").date()
             ed = datetime.strptime(request.POST.get("ld", str(today + timedelta(days=2))), "%Y-%m-%d").date()
-            overlapping = Booking.objects.filter(
-                roomNumber=room, startDate__lt=ed, endDate__gt=sd
-            ).exists()
-            if overlapping:
-                messages.error(request, "Room is already booked for the selected dates.")
+            if sd < today:
+                messages.error(request, "Check-in date cannot be in the past.")
+                return redirect("room-detail", pk=pk)
+            if ed <= sd:
+                messages.error(request, "Check-out date must be after check-in date.")
+                return redirect("room-detail", pk=pk)
+            if room_unavailable_for_dates(room, sd, ed):
+                messages.error(request, "This room is already booked/occupied for the selected dates.")
                 return redirect("room-detail", pk=pk)
         except (ValueError, TypeError):
-            pass
+            messages.error(request, "Please enter valid check-in and check-out dates.")
+            return redirect("room-detail", pk=pk)
 
     is_occupied = has_active
     is_available = not has_active
@@ -359,6 +379,30 @@ def room_detail(request, pk):
         "ld": ld,
     }
     return render(request, path + "room-detail.html", context)
+
+
+@login_required(login_url='login')
+def my_room(request):
+    user_groups = request.user.groups.all()
+    role = str(user_groups[0]) if user_groups.exists() else 'guest'
+    if role != 'guest':
+        return redirect('rooms')
+
+    guest = Guest.objects.filter(user=request.user).first()
+    today = date.today()
+    current_booking = None
+    if guest:
+        current_booking = Booking.objects.filter(
+            guest=guest,
+            endDate__gte=today,
+        ).select_related('roomNumber').order_by('-startDate').first()
+
+    context = {
+        'role': role,
+        'current_booking': current_booking,
+        'today': today,
+    }
+    return render(request, 'guest/my-room.html', context)
 
 
 @ login_required(login_url='login')
@@ -605,16 +649,26 @@ def booking_make(request):
 
         try:
             room = Room.objects.get(number=request.POST.get("roomid"))
-            start_date = datetime.strptime(request.POST.get("fd"), "%Y-%m-%d")
-            end_date = datetime.strptime(request.POST.get("ld"), "%Y-%m-%d")
+            start_date = datetime.strptime(request.POST.get("fd"), "%Y-%m-%d").date()
+            end_date = datetime.strptime(request.POST.get("ld"), "%Y-%m-%d").date()
         except (Room.DoesNotExist, ValueError, TypeError):
             messages.warning(request, "Please select a valid room and check-in/check-out dates.")
             return redirect("rooms")
-        total_price = 0.0
-        current_date = start_date.date() if hasattr(start_date, "date") else start_date
-        end_date_val = end_date.date() if hasattr(end_date, "date") else end_date
+        today = date.today()
+        if start_date < today:
+            messages.error(request, "Check-in date cannot be in the past.")
+            return redirect("rooms")
+        if end_date <= start_date:
+            messages.error(request, "Check-out date must be after check-in date.")
+            return redirect("rooms")
+        if room_unavailable_for_dates(room, start_date, end_date):
+            messages.error(request, "This room is already booked/occupied for the selected dates.")
+            return redirect("rooms")
 
-        while current_date < end_date_val:
+        total_price = 0.0
+        current_date = start_date
+
+        while current_date < end_date:
             nightly_rate = float(room.price)
             active_seasons = Season.objects.filter(is_active=True, start_date__lte=current_date, end_date__gte=current_date)
             if active_seasons.exists():
@@ -624,7 +678,7 @@ def booking_make(request):
             current_date += timedelta(days=1)
 
         total = total_price
-        numberOfDays = abs((end_date-start_date).days)
+        numberOfDays = (end_date-start_date).days
         if 'add' in request.POST:  # add dependee
             name = request.POST.get("depName")
             names.append(name)
@@ -638,8 +692,13 @@ def booking_make(request):
                 curguest = Guest.objects.get(id=request.POST.get("guest"))
             else:
                 curguest = request.user.guest
-            curbooking = Booking(guest=curguest, roomNumber=room, startDate=request.POST.get(
-                "fd"), endDate=request.POST.get("ld"), total_price=total)
+            curbooking = Booking(
+                guest=curguest,
+                roomNumber=room,
+                startDate=start_date,
+                endDate=end_date,
+                total_price=total,
+            )
             curbooking.save()
 
             for i in range(room.capacity-1):

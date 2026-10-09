@@ -1,7 +1,7 @@
 <!--Admin Navbar-->
 <nav class="navbar navbar-expand-lg py-3 bg-white shadow-sm" role="navigation">
     <div class="container">
-        <a href="{% url 'home' %}" class="navbar-brand">
+        <a href="{% if request.user.is_authenticated and role == 'guest' %}{% url 'guest-dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="navbar-brand">
             <h2 class="text-capitalize text-dark">
                 CrewMates Hotel
             </h2>
@@ -36,10 +36,7 @@
                         <a class="dropdown-item" href="{% url 'rooms' %}">Book Room</a>
                         <a class="dropdown-item" href="{% url 'current-room-services' %}">Current Room Services</a>
                         <a class="dropdown-item" href="{% url 'events' %}">Events</a>
-                        {% if request.user.guest.currentRoom != None %}
-                        <a class="dropdown-item" href="{% url 'room-profile' request.user.guest.currentRoom %}">My
-                            Room</a>
-                        {% else %}<a class="dropdown-item" href="{% url 'rooms' %}">My Room</a> {% endif %}
+                        <a class="dropdown-item" href="{% url 'my-room' %}">My Room</a>
                         {% elif role == 'manager' %}
                         <a class="dropdown-item" href="{% url 'guests'%}">Guests</a>
                         <a class="dropdown-item" href="{% url 'employees'%}">Employees</a>

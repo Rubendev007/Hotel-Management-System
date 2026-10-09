@@ -19,7 +19,7 @@
     <a href="/bookings/" class="text-decoration-none">
       <div class="card card-kpi p-3 shadow-sm">
         <div class="text-secondary small fw-semibold text-uppercase">Active Bookings</div>
-        <h5 class="text-info mt-2 mb-0">{{ active_bookings|length }}</h5>
+        <h5 class="text-info mt-2 mb-0">{{ active_booking_count }}</h5>
       </div>
     </a>
   </div>
@@ -46,20 +46,20 @@
     <div class="table-dark-custom shadow-sm">
       <div class="p-3 border-bottom border-secondary border-opacity-25 fw-bold text-white">Recent Bookings</div>
       <div class="table-responsive">
-        <table class="table table-hover table-borderless align-middle mb-0">
+        <table class="table table-dark table-borderless table-hover align-middle mb-0">
           <thead>
-            <tr><th>Room</th><th>Guest</th><th>Start</th><th>End</th></tr>
+            <tr class="text-light opacity-75"><th>Room</th><th>Guest</th><th>Start</th><th>End</th></tr>
           </thead>
           <tbody>
             {% for b in active_bookings %}
             <tr>
-              <td class="fw-bold text-white">{{ b.roomNumber.number }}</td>
-              <td>{{ b.guest.user.first_name }}</td>
-              <td class="small text-muted">{{ b.startDate }}</td>
-              <td class="small text-muted">{{ b.endDate }}</td>
+              <td class="text-white">{{ b.roomNumber.number }}</td>
+              <td class="text-white">{{ b.guest.user.first_name }}</td>
+              <td class="text-white">{{ b.startDate }}</td>
+              <td class="text-white">{{ b.endDate }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="4" class="text-center text-muted py-3">No active bookings found.</td></tr>
+            <tr><td colspan="4" class="text-white">No active bookings found.</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -71,20 +71,20 @@
     <div class="table-dark-custom shadow-sm">
       <div class="p-3 border-bottom border-secondary border-opacity-25 fw-bold text-white">Room Service Requests</div>
       <div class="table-responsive">
-        <table class="table table-hover table-borderless align-middle mb-0">
+        <table class="table table-dark table-borderless table-hover align-middle mb-0">
           <thead>
-            <tr><th>Guest</th><th>Room</th><th>Type</th><th>Created</th></tr>
+            <tr class="text-light opacity-75"><th>Guest</th><th>Room</th><th>Type</th><th>Created</th></tr>
           </thead>
           <tbody>
             {% for rs in pending_services %}
             <tr>
-              <td class="fw-bold text-white">{{ rs.curBooking.guest.user.first_name }}</td>
-              <td>{{ rs.room.number }}</td>
-              <td><span class="badge bg-secondary">{{ rs.servicesType }}</span></td>
-              <td class="small text-muted">{{ rs.createdDate }}</td>
+              <td class="text-white">{{ rs.curBooking.guest.user.first_name }}</td>
+              <td class="text-white">{{ rs.room.number }}</td>
+              <td><span class="badge text-bg-secondary">{{ rs.servicesType }}</span></td>
+              <td class="text-white">{{ rs.createdDate }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="4" class="text-center text-muted py-3">No pending room service requests.</td></tr>
+            <tr><td colspan="4" class="text-white">No pending room service requests.</td></tr>
             {% endfor %}
           </tbody>
         </table>
