@@ -20,7 +20,28 @@ from .forms import *
 
 def home(request):
     if not request.user.is_authenticated:
-        return render(request, "landing.html")
+        return render(request, "landing.html", {
+            "brand": "CrewMates",
+            "hero_image": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1920&q=80",
+            "bg_image": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1920&q=80",
+            "features": [
+                {
+                    "title": "Search & Book",
+                    "description": "Browse rooms, choose check-in and check-out dates, and confirm your reservation in minutes.",
+                    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80",
+                },
+                {
+                    "title": "Rooms & Amenities",
+                    "description": "Explore suites, deluxe rooms, and luxury stays. Filter by size, view, and price to find your perfect match.",
+                    "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80",
+                },
+                {
+                    "title": "Login & Bookings",
+                    "description": "Sign in to view your reservations, manage dates, and enjoy a seamless stay from arrival to checkout.",
+                    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80",
+                },
+            ],
+        })
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else 'guest'
     if role == "admin" or role == "manager":

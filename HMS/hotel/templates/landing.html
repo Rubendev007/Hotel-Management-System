@@ -1,0 +1,238 @@
+{# Django template: templates/landing/index.html — render with: return render(request, "landing/index.html") #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>crewsmates | Hotel management system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Cinzel:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% verbatim %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        primary: {
+          50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8',
+          500: '#0284c7', 600: '#0369a1', 700: '#075985', 800: '#0e4284', 900: '#152f5e', 950: '#081d3c'
+        },
+        secondary: {
+          50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc',
+          500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87'
+        },
+        accent: {
+          50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c',
+          500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12'
+        },
+        surface: {
+          50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+          400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a'
+        }
+      },
+      spacing: { '128': '32rem', '144': '36rem' },
+      borderRadius: { xl: '0.75rem', '2xl': '1rem', '3xl': '1.5rem' },
+      keyframes: {
+        'fade-in-down': {
+          '0%': { opacity: '0', transform: 'translateY(-8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' }
+        }
+      },
+      animation: {
+        'fade-in-down': 'fade-in-down 0.8s ease-out',
+        'fade-in-up': 'fade-in-up 0.8s ease-out',
+        'fade-in': 'fade-in 0.8s ease-out',
+        'scale-in': 'scale-in 0.5s ease-out'
+      }
+    } }
+  }
+</script>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+  .bar { transition: transform 300ms cubic-bezier(0.77,0,0.175,1); transform-origin: center; }
+  .feature-card { opacity: 0; transform: translateX(4rem); }
+  .feature-card.revealed { opacity: 1; transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce) { .feature-card { opacity: 1; transform: none; transition: none; } }
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold px-6 py-3 rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all duration-300;
+  }
+  .btn-secondary {
+    @apply bg-white text-primary-700 font-semibold px-6 py-3 rounded-xl border border-primary-200 hover:bg-primary-50 hover:border-primary-300 hover:shadow-md transition-all duration-300;
+  }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.85) 100%),
+      linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0) 100%);
+  }
+  .card-overlay {
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+</style>
+{% endverbatim %}
+</head>
+<body class="bg-surface-50">
+
+<!-- HERO -->
+<section class="relative h-screen overflow-hidden">
+  <img class="absolute inset-0 w-full h-full object-cover" src="{{ hero_image }}" alt="Luxury hotel lobby" fetchpriority="high">
+  <div class="absolute inset-0 hero-overlay"></div>
+
+  <!-- Navbar -->
+  <div id="nav" class="absolute top-6 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10">
+    <div class="w-32 md:w-48"></div> <!-- spacer to balance -->
+    <a href="#" class="text-3xl md:text-5xl lg:text-6xl font-[Cinzel] font-bold text-white tracking-[0.35em] uppercase drop-shadow-2xl hover:opacity-90 transition-all duration-700 hover:scale-[1.03] origin-center" style="text-shadow:0 6px 30px rgba(255,255,255,0.3),0 14px 60px rgba(0,0,0,0.7);">CREWMATES</a>
+    <div class="flex items-center gap-3 w-32 md:w-48 justify-end">
+      <a href="{% url 'login' %}" class="px-6 py-3 rounded-full text-sm font-bold text-white border border-white/40 bg-white/10 backdrop-blur hover:bg-white/20 transition shadow-xl">Login</a>
+      <a href="{% url 'register' %}" class="px-6 py-3 rounded-full text-sm font-bold text-surface-900 bg-white hover:bg-surface-100 transition shadow-2xl">Register</a>
+    </div>
+  </div>
+
+  <!-- Hero content -->
+  <div class="relative z-10 h-full flex flex-col justify-end items-center px-6 pb-12 md:pb-16">
+    <h1 class="text-center text-white font-[Bodoni_Moda] font-medium leading-[0.95] tracking-tight text-5xl sm:text-6xl md:text-7xl lg:text-[95px]" style="letter-spacing:-0.02em;">
+      Book Your Stay.
+    </h1>
+    <p class="mt-6 text-center text-white/70 font-[Bodoni_Moda] font-medium text-xl md:text-2xl lg:text-[28px] leading-snug tracking-tight" style="letter-spacing:0.04em;">
+      DISCOVER LUXURY, REDEFINED.
+    </p>
+    <p class="mt-8 text-center text-white/70 font-[Inter] text-sm md:text-base tracking-wide max-w-xl mx-auto">
+      Search rooms, select dates, and reserve in seconds. Log in to manage bookings and enjoy seamless check-in.
+    </p>
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+      <a href="#features" class="btn-primary text-lg">Get Started</a>
+      <a href="#about" class="btn-secondary text-lg">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="bg-white py-24 md:py-32 px-6">
+  <div class="max-w-5xl mx-auto flex flex-col items-center">
+    <span class="text-primary-600 text-sm font-semibold uppercase tracking-widest mb-4">Welcome to {{ brand }}</span>
+    <h2 class="text-4xl md:text-5xl lg:text-6xl font-normal text-surface-900 text-center leading-tight mb-8">
+      Where every stay feels special
+    </h2>
+    <p class="text-lg md:text-xl text-surface-600 leading-relaxed text-center max-w-3xl mb-12">
+      Find your perfect room, choose your dates, and book with confidence. From luxury suites to cozy retreats — experience comfort crafted for you.
+    </p>
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-primary-500"></span>
+      <span class="flex-1 h-[2px] bg-gradient-to-r from-primary-400 to-primary-200"></span>
+      <span class="w-2 h-2 rounded-full bg-primary-500"></span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="relative px-5 md:px-10 lg:px-16 pt-16 md:pt-24 pb-10 md:pb-12">
+  <div class="fixed inset-0 -z-10 bg-cover bg-center" style="background-image:url('{{ bg_image }}')"></div>
+  <div class="absolute inset-0 bg-surface-900/60"></div>
+
+  <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-10 lg:gap-24 xl:gap-48">
+    <!-- Left (sticky) -->
+    <div class="lg:sticky lg:top-24 lg:self-start">
+      <div>
+        <h2 class="text-white text-3xl md:text-4xl lg:text-[44px] leading-[1.2] font-light">Find your room. Pick your dates. Confirm your stay.</h2>
+      </div>
+
+      <div id="feature-nav" class="hidden lg:flex flex-col items-start gap-3 my-10">
+        {% for f in features %}
+        <button type="button" data-target="{{ forloop.counter0 }}" class="feature-nav-btn text-white/60 {% if forloop.first %}text-white font-semibold{% else %}font-normal{% endif %} py-3 px-4 rounded-xl text-left transition-all duration-300 hover:bg-white/10">
+          {{ f.title }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right (cards) -->
+    <div class="flex flex-col gap-12 md:gap-16 lg:gap-[20vh] lg:mt-10">
+      {% for f in features %}
+      <article class="feature-card transition-all duration-1000 ease-out card-overlay rounded-3xl p-8 md:p-10 overflow-hidden" data-index="{{ forloop.counter0 }}">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <div class="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            </div>
+            <h3 class="text-2xl md:text-3xl text-white font-medium">{{ f.title }}</h3>
+          </div>
+        </div>
+        <div class="mt-6 aspect-[2/1] max-h-[45vh] w-full rounded-2xl overflow-hidden bg-black/20 shadow-2xl ring-1 ring-white/10">
+          <img class="w-full h-full object-cover" src="{{ f.image }}" alt="{{ f.title }}" loading="lazy">
+        </div>
+        <p class="mt-6 text-white/85 text-lg leading-relaxed">{{ f.description }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% verbatim %}
+<script>
+(function () {
+
+  // Features reveal + active nav
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.feature-card'));
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.feature-nav-btn'));
+  function setActive(i) {
+    btns.forEach(function (b, idx) {
+      if (idx === i) {
+        b.classList.add('text-white','font-semibold');
+        b.classList.remove('text-white/60','font-normal');
+      } else {
+        b.classList.remove('text-white','font-semibold');
+        b.classList.add('text-white/60','font-normal');
+      }
+    });
+  }
+  var reveal = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('revealed'); reveal.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  var active = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) setActive(Number(e.target.dataset.index));
+    });
+  }, { threshold: 0.5 });
+  cards.forEach(function (c) {
+    reveal.observe(c);
+    active.observe(c);
+    c.style.animationDelay = (Number(c.dataset.index) * 100) + 'ms';
+  });
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      cards[Number(b.dataset.target)].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+})();
+</script>
+{% endverbatim %}
+</body>
+</html>
