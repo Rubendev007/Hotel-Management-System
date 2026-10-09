@@ -1,5 +1,82 @@
-<footer class="footer mt-auto bg-dark text-white">
-    <div class="container text-center py-3">
-        <span class="text-white-50">Hotel Management System - CrewMates 2020 ©</span>
+<footer class="site-footer mt-auto">
+    <div class="site-footer-inner">
+        <a class="site-footer-brand" href="{% url 'home' %}">CrewMates <span>Hotel</span></a>
+        <p class="site-footer-note">A comfortable stay, thoughtfully managed.</p>
+        <span class="site-footer-copyright">Hotel Management System <span aria-hidden="true">·</span> © 2026 CrewMates</span>
     </div>
 </footer>
+
+<style>
+    .site-footer {
+        border-top: 1px solid rgba(255, 255, 255, .08);
+        background: #14261d;
+        color: #dce8df;
+    }
+
+    .site-footer-inner {
+        display: grid;
+        width: min(1160px, calc(100% - 40px));
+        min-height: 94px;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        gap: 5px 24px;
+        margin: 0 auto;
+        padding: 18px 0;
+    }
+
+    .site-footer-brand {
+        color: #f4f7f2;
+        font-family: Georgia, serif;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: .01em;
+        text-decoration: none;
+    }
+
+    .site-footer-brand span {
+        color: #9bb6a3;
+        font-weight: 400;
+    }
+
+    .site-footer-brand:hover {
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .site-footer-note {
+        justify-self: end;
+        margin: 0;
+        color: #a9b9ad;
+        font-size: 12px;
+    }
+
+    .site-footer-copyright {
+        grid-column: 1 / -1;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, .1);
+        color: #899c8e;
+        font-size: 10px;
+        letter-spacing: .025em;
+        text-align: center;
+    }
+
+    .site-footer-copyright span {
+        padding: 0 5px;
+        color: #6c8a75;
+    }
+
+    @media (max-width: 520px) {
+        .site-footer-inner {
+            width: calc(100% - 32px);
+            grid-template-columns: 1fr;
+            justify-items: center;
+            gap: 8px;
+            padding: 20px 0 15px;
+        }
+
+        .site-footer-note {
+            justify-self: center;
+            text-align: center;
+        }
+    }
+</style>

@@ -1,65 +1,169 @@
 {% extends 'base_root.html' %}
-{% block extra_head %}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{% endblock %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  body:has(.staff-dashboard) { background:#f5f6f2; color:#1b2b23; font-family:"DM Sans","Segoe UI",sans-serif; }
+  .staff-dashboard { --staff-forest:#173d2b; --staff-green:#2c7650; --staff-ink:#1b2b23; --staff-muted:#718078; --staff-line:#e2e8e2; min-height:calc(100vh - 94px); padding:clamp(28px,5vw,58px) 20px 64px; }
+  .staff-dashboard *, .staff-dashboard *::before, .staff-dashboard *::after { box-sizing:border-box; }
+  .staff-shell { width:min(1160px,100%); margin:0 auto; }
+  .staff-header { display:flex; align-items:flex-end; justify-content:space-between; gap:22px; margin-bottom:28px; }
+  .staff-eyebrow { margin:0 0 7px; color:var(--staff-green); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
+  .staff-title { margin:0; color:var(--staff-ink); font-family:"Playfair Display",Georgia,serif; font-size:clamp(30px,4vw,42px); font-weight:600; letter-spacing:-.035em; line-height:1.08; }
+  .staff-subtitle { margin:9px 0 0; color:var(--staff-muted); font-size:13px; }
+  .staff-header-actions { display:flex; flex:none; align-items:center; gap:9px; }
+  .staff-header-actions .btn { display:inline-flex; min-height:40px; align-items:center; gap:7px; padding:8px 13px; border-radius:7px; font-size:12px; font-weight:700; }
+  .staff-profile-link { border:1px solid #dce4dc; background:#fff; color:#526158; }
+  .staff-profile-link:hover { border-color:#bdcbbf; background:#f9fbf8; color:var(--staff-forest); }
+  .staff-logout-link { border:1px solid var(--staff-forest); background:var(--staff-forest); color:#fff; }
+  .staff-logout-link:hover { border-color:#24583d; background:#24583d; color:#fff; }
+  .staff-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:34px; }
+  .staff-stat { position:relative; overflow:hidden; min-height:126px; padding:23px 24px; border:1px solid var(--staff-line); border-radius:11px; background:#fff; box-shadow:0 7px 24px rgba(27,43,35,.045); }
+  .staff-stat::before { position:absolute; inset:0 auto 0 0; width:4px; background:#d49a43; content:""; }
+  .staff-stat.is-completed::before { background:#398257; }
+  .staff-stat-label { margin:0 0 11px; color:var(--staff-muted); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .staff-stat-value { margin:0; color:var(--staff-ink); font-family:"Playfair Display",Georgia,serif; font-size:37px; font-weight:600; line-height:1; }
+  .staff-stat-caption { margin:8px 0 0; color:#8a968e; font-size:11px; }
+  .staff-section { margin-top:30px; }
+  .staff-section-heading { display:flex; align-items:end; justify-content:space-between; gap:14px; margin-bottom:14px; }
+  .staff-section-heading h2 { margin:0; color:var(--staff-ink); font-family:"Playfair Display",Georgia,serif; font-size:23px; font-weight:600; }
+  .staff-section-heading p { margin:5px 0 0; color:var(--staff-muted); font-size:12px; }
+  .staff-active-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr)); gap:15px; }
+  .staff-request-card { display:flex; min-width:0; flex-direction:column; padding:19px; border:1px solid var(--staff-line); border-radius:10px; background:#fff; box-shadow:0 6px 20px rgba(27,43,35,.04); }
+  .staff-request-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:13px; }
+  .staff-request-room { margin:0; color:var(--staff-ink); font-family:"Playfair Display",Georgia,serif; font-size:20px; font-weight:600; }
+  .staff-request-id { display:block; margin-top:4px; color:#86938a; font-size:10px; font-weight:600; letter-spacing:.04em; }
+  .staff-status { flex:none; padding:6px 9px; border:1px solid #eadcbf; border-radius:999px; background:#fbf5e9; color:#926829; font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .staff-status.is-progress { border-color:#cbdde7; background:#eff6f9; color:#4e7183; }
+  .staff-request-description { margin:0 0 11px; color:#526158; font-size:12px; line-height:1.6; }
+  .staff-request-time { margin:0 0 16px; color:#87938b; font-size:10px; }
+  .staff-request-action { margin-top:auto; }
+  .staff-request-action .btn { min-height:37px; padding:8px 12px; border-radius:6px; font-size:11px; font-weight:700; }
+  .staff-start-button { border:1px solid #dce4dc; background:#fff; color:var(--staff-forest); }
+  .staff-start-button:hover { border-color:var(--staff-forest); background:#f2f6f2; color:var(--staff-forest); }
+  .staff-complete-button { border:1px solid var(--staff-forest); background:var(--staff-forest); color:#fff; }
+  .staff-complete-button:hover { border-color:#24583d; background:#24583d; color:#fff; }
+  .staff-empty { grid-column:1/-1; padding:24px; border:1px dashed #d3ddd4; border-radius:9px; background:rgba(255,255,255,.65); color:var(--staff-muted); font-size:12px; text-align:center; }
+  .staff-table-card { overflow:hidden; border:1px solid var(--staff-line); border-radius:10px; background:#fff; box-shadow:0 6px 20px rgba(27,43,35,.04); }
+  .staff-table-card .table-responsive { margin:0; }
+  .staff-completed-table { margin:0; color:#526158; font-size:12px; }
+  .staff-completed-table thead th { padding:13px 17px; border-bottom:1px solid var(--staff-line); background:#f8faf7; color:#78857c; font-size:9px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; }
+  .staff-completed-table tbody td { padding:14px 17px; border-color:#edf0ec; vertical-align:middle; }
+  .staff-completed-table tbody tr:last-child td { border-bottom:0; }
+  .staff-completed-table .completed-badge { display:inline-block; margin-right:7px; padding:5px 8px; border:1px solid #cce3d3; border-radius:999px; background:#edf7ef; color:#33754c; font-size:9px; font-weight:700; white-space:nowrap; }
+  @media(max-width:650px) {
+    .staff-dashboard { padding:27px 15px 44px; }
+    .staff-header { align-items:flex-start; flex-direction:column; }
+    .staff-header-actions { width:100%; }
+    .staff-header-actions .btn { flex:1; justify-content:center; }
+    .staff-stats { gap:10px; }
+    .staff-stat { min-height:112px; padding:18px; }
+  }
+  @media(max-width:400px) {
+    .staff-stats { grid-template-columns:1fr; }
+  }
+</style>
+{% endblock %}
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Staff Operational Dashboard</h1>
-    <div>
-      <a href="{% url 'employee-profile' request.user.id %}" class="btn btn-outline-secondary me-2"><i class="bi bi-person"></i> Profile</a>
-      <a href="{% url 'logout' %}" class="btn btn-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+<section class="staff-dashboard">
+  <div class="staff-shell">
+    <header class="staff-header">
+      <div>
+        <p class="staff-eyebrow">CrewMates · Team operations</p>
+        <h1 class="staff-title">Staff dashboard</h1>
+        <p class="staff-subtitle">Guest service requests and today's completed work.</p>
+      </div>
+      <div class="staff-header-actions">
+        <a href="{% url 'employee-profile' request.user.id %}" class="btn staff-profile-link"><i class="bi bi-person" aria-hidden="true"></i> Profile</a>
+        <a href="{% url 'logout' %}" class="btn staff-logout-link"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Log out</a>
+      </div>
+    </header>
+
+    <div class="staff-stats">
+      <article class="staff-stat">
+        <p class="staff-stat-label">Active requests</p>
+        <p class="staff-stat-value">{{ active_count }}</p>
+        <p class="staff-stat-caption">Service requests requiring attention</p>
+      </article>
+      <article class="staff-stat is-completed">
+        <p class="staff-stat-label">Completed today</p>
+        <p class="staff-stat-value">{{ completed_count }}</p>
+        <p class="staff-stat-caption">Requests delivered or completed</p>
+      </article>
     </div>
-  </div>
 
-  <div class="row mb-4">
-    <div class="col-md-6"><div class="card text-bg-warning"><div class="card-body"><h5>Active Requests</h5><p class="h2">{{ active_count }}</p></div></div></div>
-    <div class="col-md-6"><div class="card text-bg-success"><div class="card-body"><h5>Completed Today</h5><p class="h2">{{ completed_count }}</p></div></div></div>
-  </div>
-
-  <h3>Active Guest Service Requests</h3>
-  <div class="row">
-  {% for task in active_requests %}
-    <div class="col-md-4 mb-3">
-      <div class="card {% if task.status == 'pending' %}border-warning{% elif task.status == 'in_progress' %}border-info{% endif %}">
-        <div class="card-body">
-          <h5 class="card-title">Room {{ task.room_number }}</h5>
-          <p class="text-muted">Task #{{ task.id }} — {{ task.description }} — Status: {{ task.status|title }}</p>
-          <p class="small text-muted">Started: {{ task.startTime }}</p>
-          {% if task.status == 'pending' %}
+    <section class="staff-section" aria-labelledby="active-requests-title">
+      <div class="staff-section-heading">
+        <div>
+          <h2 id="active-requests-title">Active guest requests</h2>
+          <p>Work through requests and update their progress.</p>
+        </div>
+      </div>
+      <div class="staff-active-grid">
+        {% for task in active_requests %}
+        <article class="staff-request-card">
+          <div class="staff-request-top">
+            <div>
+              <h3 class="staff-request-room">Room {{ task.room_number }}</h3>
+              <span class="staff-request-id">TASK #{{ task.id }}</span>
+            </div>
+            <span class="staff-status{% if task.status == 'in_progress' %} is-progress{% endif %}">{{ task.status|title }}</span>
+          </div>
+          <p class="staff-request-description">{{ task.description }}</p>
+          <p class="staff-request-time">Started {{ task.startTime }}</p>
+          <div class="staff-request-action">
+            {% if task.status == 'pending' %}
             <form method="post" action="{% url 'start_cleaning_task' task.id %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'staff_dashboard' %}">
-              <button type="submit" class="btn btn-outline-primary btn-sm">Start Service</button>
+              <button type="submit" class="btn staff-start-button">Start service</button>
             </form>
-          {% elif task.status == 'in_progress' %}
+            {% elif task.status == 'in_progress' %}
             <form method="post" action="{% url 'mark_room_cleaned_task' task.id %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'staff_dashboard' %}">
-              <button type="submit" class="btn btn-outline-success btn-sm">Complete & Deliver</button>
+              <button type="submit" class="btn staff-complete-button">Complete &amp; deliver</button>
             </form>
-          {% endif %}
+            {% endif %}
+          </div>
+        </article>
+        {% empty %}
+        <p class="staff-empty">There are no active service requests right now.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="staff-section" aria-labelledby="completed-requests-title">
+      <div class="staff-section-heading">
+        <div>
+          <h2 id="completed-requests-title">Completed requests</h2>
+          <p>Guest services completed today.</p>
         </div>
       </div>
-    </div>
-  {% empty %}
-    <p>No active service requests.</p>
-  {% endfor %}
+      <div class="staff-table-card">
+        <div class="table-responsive">
+          <table class="table staff-completed-table">
+            <thead>
+              <tr><th>Task</th><th>Room</th><th>Request</th><th>Completed</th></tr>
+            </thead>
+            <tbody>
+              {% for task in completed_today %}
+              <tr>
+                <td>#{{ task.id }}</td>
+                <td>{{ task.room_number }}</td>
+                <td>{{ task.description }}</td>
+                <td><span class="completed-badge">Completed</span>{{ task.endTime }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted text-center py-4">No requests completed today.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <h3>Completed Service Requests</h3>
-  <table class="table table-hover">
-    <thead><tr><th>Task ID</th><th>Room</th><th>Request Type</th><th>Completed</th></tr></thead>
-    <tbody>
-    {% for task in completed_today %}
-      <tr>
-        <td>{{ task.id }}</td>
-        <td>{{ task.room_number }}</td>
-        <td>{{ task.description }}</td>
-        <td><span class="badge bg-success">Delivered / Completed</span> {{ task.endTime }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="4" class="text-muted">No completed requests today.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+</section>
 {% endblock %}

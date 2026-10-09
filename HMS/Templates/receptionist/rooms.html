@@ -13,96 +13,159 @@
 {% endif %}
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-:root{--surface-card:#111827;--text:#f3f4f6;--text-muted:#9ca3af;--border:#374151;--radius-md:12px;--shadow-lg:0 20px 40px rgba(0,0,0,0.45);--primary:#6366f1;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--indigo:#6366f1;}
-.dark-console{font-family:'Inter',system-ui,sans-serif;background:#0b0f19;color:#f3f4f6;min-height:100vh;}
-.room-grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
-.room-card{background:linear-gradient(135deg,#111827 0%,#0f1222 100%);border:1px solid #374151;border-radius:16px;padding:1.25rem;box-shadow:var(--shadow-lg);transition:transform .15s ease,border-color .15s ease;display:flex;flex-direction:column;}
-.room-card:hover{transform:translateY(-4px);border-color:#6366f1;}
-.room-card.green{border-left:4px solid #10b981;}
-.room-card.red{border-left:4px solid #ef4444;}
-.room-card.amber{border-left:4px solid #f59e0b;}
-.room-card.indigo{border-left:4px solid #6366f1;}
-.badge{display:inline-block;padding:.25em .6em;border-radius:.5rem;font-size:.75rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
-.badge-green{background:#064e3b;color:#34d399;border:1px solid #10b981;}
-.badge-red{background:#450a0a;color:#f87171;border:1px solid #ef4444;}
-.badge-amber{background:#78350f;color:#fbbf24;border:1px solid #f59e0b;}
-.badge-indigo{background:#312e81;color:#818cf8;border:1px solid #6366f1;}
-.action-row{display:flex;gap:.5rem;margin-top:auto;padding-top:1rem;border-top:1px solid #374151;}
-.action-row .btn{flex:1;font-size:.85rem;padding:.45rem .6rem;border-radius:.5rem;border:none;font-weight:600;cursor:pointer;transition:filter .15s;}
-.action-row .btn:hover{filter:brightness(1.15);}
-.toolbar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem;padding:1rem 1.25rem;background:#111827;border:1px solid #374151;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.35);}
-.toolbar input,.toolbar select{background:#0b0f19;border:1px solid #374151;color:#f3f4f6;border-radius:8px;padding:.4rem .6rem;font-size:.9rem;outline:none;}
-.toolbar button{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:.4rem .8rem;font-weight:600;font-size:.9rem;cursor:pointer;}
-.modal-overlay{position:fixed;z-index:1050;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-.modal-overlay.active{opacity:1;pointer-events:auto;}
-.modal-card{background:#111827;border:1px solid #374151;border-radius:16px;padding:2rem;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,.6);transform:translateY(10px);transition:transform .2s;}
-.modal-overlay.active .modal-card{transform:translateY(0);}
-.modal-card h3{margin-top:0;font-weight:800;color:#f3f4f6;}
-.modal-card label{display:block;font-weight:600;font-size:.8rem;color:#9ca3af;margin:.6rem 0 .2rem;}
-.modal-card input,.modal-card select{width:100%;padding:.5rem .7rem;border:1px solid #374151;border-radius:8px;background:#0b0f19;color:#f3f4f6;font-size:.9rem;}
-.modal-actions{display:flex;gap:.5rem;margin-top:1rem;}
-.modal-actions button{flex:1;padding:.55rem;border-radius:8px;border:none;font-weight:700;cursor:pointer;}
-.modal-actions .btn-secondary{background:#374151;color:#f3f4f6;}
-.modal-actions .btn-primary{background:#6366f1;color:#fff;}
+.reception-console {
+    --reception-forest: #173d2b;
+    --reception-green: #2c7650;
+    --reception-ink: #1b2b23;
+    --reception-muted: #718078;
+    --reception-line: #e2e8e2;
+    box-sizing: border-box;
+    min-height: calc(100vh - 154px);
+    padding: clamp(28px, 5vw, 58px) 20px 64px;
+    background: #f5f6f2;
+    color: var(--reception-ink);
+    font-family: "DM Sans", "Segoe UI", sans-serif;
+}
+.reception-console *,
+.reception-console *::before,
+.reception-console *::after { box-sizing: border-box; }
+.reception-shell { width: min(1160px, 100%); margin: 0 auto; }
+.reception-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; margin-bottom: 27px; }
+.reception-heading { min-width: 0; }
+.reception-eyebrow { margin: 0 0 7px; color: var(--reception-green); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.reception-title { margin: 0; color: var(--reception-ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 4vw, 42px); font-weight: 600; letter-spacing: -.035em; line-height: 1.08; }
+.reception-intro { margin: 9px 0 0; color: var(--reception-muted); font-size: 13px; }
+.reception-header-actions { display: flex; flex: none; align-items: center; gap: 10px; }
+.reception-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 8px; padding: 0 15px; border: 1px solid transparent; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 700; text-decoration: none; transition: background .15s ease, border-color .15s ease, transform .15s ease; cursor: pointer; }
+.reception-button:hover { transform: translateY(-1px); text-decoration: none; }
+.reception-button-primary { background: var(--reception-forest); color: #fff; }
+.reception-button-primary:hover { background: #24583d; color: #fff; }
+.reception-button-quiet { border-color: #dce4dc; background: #fff; color: #526158; }
+.reception-button-quiet:hover { border-color: #bdcbbf; background: #f9fbf8; color: var(--reception-forest); }
+.reception-toolbar { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; border: 1px solid var(--reception-line); border-radius: 11px; background: #fff; box-shadow: 0 5px 18px rgba(27, 43, 35, .035); }
+.reception-toolbar .toolbar-search { position: relative; flex: 1 1 250px; }
+.reception-toolbar .toolbar-search i { position: absolute; top: 50%; left: 13px; color: #8a978e; font-size: 13px; transform: translateY(-50%); pointer-events: none; }
+.reception-toolbar input,
+.reception-toolbar select { width: 100%; min-height: 41px; padding: 9px 12px; border: 1px solid #dce4dc; border-radius: 7px; outline: 0; background: #fbfcfa; color: var(--reception-ink); font: inherit; font-size: 12px; }
+.reception-toolbar .toolbar-search input { padding-left: 36px; }
+.reception-toolbar select { flex: 0 1 175px; }
+.reception-toolbar input:focus,
+.reception-toolbar select:focus { border-color: #6da581; outline: 3px solid rgba(83, 151, 105, .13); }
+.room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.room-card { display: flex; min-width: 0; min-height: 205px; flex-direction: column; padding: 19px; border: 1px solid var(--reception-line); border-top: 3px solid #6f9c7d; border-radius: 10px; background: #fff; box-shadow: 0 7px 22px rgba(27, 43, 35, .045); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.room-card:hover { transform: translateY(-2px); box-shadow: 0 12px 27px rgba(27, 43, 35, .09); }
+.room-card.green { border-top-color: #398257; }
+.room-card.red { border-top-color: #bd5b50; }
+.room-card.amber { border-top-color: #d49a43; }
+.room-card.indigo { border-top-color: #7185a4; }
+.room-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.room-status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid transparent; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
+.room-status-badge::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; content: ""; }
+.room-status-badge.badge-green { border-color: #cce3d3; background: #edf7ef; color: #33754c; }
+.room-status-badge.badge-red { border-color: #efd4d0; background: #fcf0ee; color: #a6463e; }
+.room-status-badge.badge-amber { border-color: #ecdcbf; background: #fbf5e9; color: #926829; }
+.room-number { margin: 0; color: #809087; font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 600; line-height: 1; }
+.room-type { margin: 0 0 8px; color: var(--reception-ink); font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 600; text-transform: capitalize; }
+.room-summary { margin: 0 0 15px; color: var(--reception-muted); font-size: 11px; line-height: 1.7; }
+.room-summary i { margin-right: 4px; color: #839288; }
+.room-guest { margin: auto 0 13px; color: #637168; font-size: 11px; }
+.room-guest i { margin-right: 6px; color: #87968b; }
+.action-row { display: flex; gap: 8px; margin-top: auto; padding-top: 13px; border-top: 1px solid #edf0ec; }
+.action-row .btn { display: inline-flex; min-height: 36px; flex: 1; align-items: center; justify-content: center; padding: 7px 10px; border: 1px solid #dce4dc; border-radius: 6px; background: #fff; color: #526158; font: inherit; font-size: 11px; font-weight: 700; text-decoration: none; transition: .15s ease; cursor: pointer; }
+.action-row .btn:hover { border-color: #b7cbbd; background: #f5f8f4; color: var(--reception-forest); text-decoration: none; }
+.action-row .btn-checkin { border-color: var(--reception-forest); background: var(--reception-forest); color: #fff; }
+.action-row .btn-checkin:hover { border-color: #24583d; background: #24583d; color: #fff; }
+.action-row .btn-clean { border-color: #e6d4b2; background: #fffaf0; color: #8d6528; }
+.action-row .btn-clean:hover { border-color: #d3b77f; background: #fbf2df; color: #79541e; }
+.action-row .btn-checkout { border-color: #ecd4d0; background: #fff; color: #a6463e; }
+.action-row .btn-checkout:hover { border-color: #d8aaa3; background: #fcf0ee; color: #8f3932; }
+.alert-container .alert { border: 1px solid #ead7bc; border-radius: 9px; box-shadow: 0 8px 24px rgba(27, 43, 35, .1); }
+.modal-overlay { position: fixed; z-index: 1050; inset: 0; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(16, 29, 21, .55); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal-card { width: min(100%, 500px); max-height: min(90vh, 760px); overflow-y: auto; padding: 27px; transform: translateY(10px); border: 1px solid var(--reception-line); border-radius: 13px; background: #fff; box-shadow: 0 25px 70px rgba(13, 32, 21, .24); transition: transform .2s ease; }
+.modal-overlay.active .modal-card { transform: translateY(0); }
+.modal-card h3 { margin: 0 0 18px; color: var(--reception-ink); font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 600; }
+.modal-card label { display: block; margin: 12px 0 6px; color: #536158; font-size: 11px; font-weight: 700; }
+.modal-card input,
+.modal-card select { width: 100%; min-height: 41px; padding: 9px 11px; border: 1px solid #dce4dc; border-radius: 7px; background: #fbfcfa; color: var(--reception-ink); font: inherit; font-size: 12px; }
+.modal-card input:focus,
+.modal-card select:focus { border-color: #6da581; outline: 3px solid rgba(83, 151, 105, .13); }
+.modal-actions { display: flex; gap: 9px; margin-top: 20px; }
+.modal-actions button { min-height: 42px; flex: 1; padding: 9px 12px; border: 1px solid transparent; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.modal-actions .btn-secondary { border-color: #dce4dc; background: #fff; color: #526158; }
+.modal-actions .btn-primary { background: var(--reception-forest); color: #fff; }
+.modal-actions .btn-primary:hover { background: #24583d; }
+@media (max-width: 650px) {
+    .reception-console { padding: 27px 15px 42px; }
+    .reception-header { align-items: flex-start; flex-direction: column; }
+    .reception-header-actions { width: 100%; }
+    .reception-header-actions .reception-button { flex: 1; }
+    .reception-toolbar select { flex: 1 1 140px; }
+    .room-grid { grid-template-columns: 1fr; }
+}
 </style>
 
-<div class="dark-console py-5 px-3">
-<div class="container" style="max-width:1200px;">
+<div class="reception-console">
+<div class="reception-shell">
 
-<!-- Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h1 class="m-0" style="font-weight:800;font-family:'Inter';color:#f3f4f6;letter-spacing:-.02em;">Receptionist Console <span style="font-size:.7rem;color:#6366f1;background:#312e81;padding:.2rem .55rem;border-radius:30px;margin-left:.5rem;">DARK SAAS</span></h1>
-<button class="btn btn-sm" style="background:#6366f1;color:#fff;font-weight:700;border:none;border-radius:8px;padding:.5rem 1rem;" onclick="document.getElementById('checkin-modal').classList.add('active')">+ Express Check-In</button>
+<header class="reception-header">
+<div class="reception-heading">
+<p class="reception-eyebrow">Front desk</p>
+<h1 class="reception-title">Receptionist Console</h1>
+<p class="reception-intro">Room status, guest arrivals, and housekeeping at a glance.</p>
 </div>
+<div class="reception-header-actions">
+<button class="reception-button reception-button-primary" onclick="document.getElementById('checkin-modal').classList.add('active')"><i class="fas fa-plus" aria-hidden="true"></i> Express Check-In</button>
+<a class="reception-button reception-button-quiet" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Log Out</a>
+</div>
+</header>
 
-<!-- Search / Filter Toolbar -->
-<div class="toolbar">
+<div class="reception-toolbar">
+<div class="toolbar-search">
+<i class="fas fa-search" aria-hidden="true"></i>
 <input type="text" id="guestFilter" placeholder="Guest name / Room #..." oninput="filterRooms()">
+</div>
 <select id="typeFilter" onchange="filterRooms()">
 <option value="">All Types</option>
 <option>King</option><option>Luxury</option><option>Normal</option><option>Economic</option>
 </select>
 <select id="statusFilter" onchange="filterRooms()">
 <option value="">All Status</option>
-<option>Available</option><option>Occupied</option><option>Cleaning / Maintenance</option><option>Reserved</option>
+<option>Available</option><option>Occupied</option><option>Needs Cleaning</option><option>Reserved</option>
 </select>
 </div>
 
-<!-- Room Grid -->
 <div class="room-grid" id="roomGrid">
 {% for r in rooms %}
 {% if r.status == 'cleaning' or r.status == 'dirty' %}
   <div class="room-card amber" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Needs Cleaning" data-guest="none">
-    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-amber">Needs Cleaning</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
-    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
-    <div class="action-row"><a href="{% url 'mark-cleaned' r.number %}" class="btn btn-outline-warning">Mark Cleaned</a></div>
+    <div class="room-card-top"><span class="room-status-badge badge-amber">Needs Cleaning</span><h2 class="room-number">{{ r.number }}</h2></div>
+    <h3 class="room-type">{{ r.roomType }}</h3>
+    <p class="room-summary"><i class="fas fa-user-friends" aria-hidden="true"></i> {{ r.capacity }} guests <span aria-hidden="true">·</span> <i class="fas fa-bed" aria-hidden="true"></i> {{ r.numberOfBeds }} beds <span aria-hidden="true">·</span> Rs. {{ r.price }}/night</p>
+    <div class="action-row"><a href="{% url 'mark-cleaned' r.number %}" class="btn btn-clean">Mark Cleaned</a></div>
   </div>
 {% elif r.is_unavailable %}
   {% with status_label="Occupied" status_cls="red" badge_cls="badge-red" %}
   <div class="room-card red" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Occupied" data-guest="{% if r.booking_set.all.last %}{{ r.booking_set.all.last.guest.user.username }}{% else %}none{% endif %}">
-    <div class="d-flex justify-content-between align-items-start mb-2">
-      <span class="badge {{ badge_cls }}">{{ status_label }}</span>
-      <h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2>
+    <div class="room-card-top">
+      <span class="room-status-badge {{ badge_cls }}">{{ status_label }}</span>
+      <h2 class="room-number">{{ r.number }}</h2>
     </div>
-    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
-    <div style="font-size:.8rem;color:#6b7280;margin-bottom:.75rem;">
-      <i class="fas fa-user mr-1"></i>{% with b=r.booking_set.all.last %}{% if b and b.guest %}{{ b.guest.user.username }}{% else %} - {% endif %}{% endwith %}
-    </div>
+    <h3 class="room-type">{{ r.roomType }}</h3>
+    <p class="room-summary"><i class="fas fa-user-friends" aria-hidden="true"></i> {{ r.capacity }} guests <span aria-hidden="true">·</span> <i class="fas fa-bed" aria-hidden="true"></i> {{ r.numberOfBeds }} beds <span aria-hidden="true">·</span> Rs. {{ r.price }}/night</p>
+    <p class="room-guest"><i class="fas fa-user" aria-hidden="true"></i>{% with b=r.booking_set.all.last %}{% if b and b.guest %}{{ b.guest.user.username }}{% else %}No guest details{% endif %}{% endwith %}</p>
     <div class="action-row">
-      <a href="{% url 'room-detail' r.number %}" class="btn btn-outline-primary">View Guest</a>
-      <a href="{% url 'checkout' r.number %}" class="btn btn-outline-danger">Check Out</a>
+      <a href="{% url 'room-detail' r.number %}" class="btn">View Guest</a>
+      <a href="{% url 'checkout' r.number %}" class="btn btn-checkout">Check Out</a>
     </div>
   </div>
   {% endwith %}
 {% else %}
   <div class="room-card green" data-room-number="{{ r.number }}" data-type="{{ r.roomType }}" data-status="Available" data-guest="none">
-    <div class="d-flex justify-content-between align-items-start mb-2"><span class="badge badge-green">Available</span><h2 class="m-0" style="font-weight:800;font-size:1.5rem;color:#f3f4f6;">{{ r.number }}</h2></div>
-    <h5 style="font-weight:600;color:#e5e7eb;margin:.25rem 0 .75rem;">{{ r.roomType }}</h5>
-    <p style="font-size:.85rem;color:#9ca3af;margin:.2rem 0;">Capacity: {{ r.capacity }}  |  Beds: {{ r.numberOfBeds }}  |  Rs. {{ r.price }}/night</p>
-    <div class="action-row"><button class="btn btn-outline-primary" onclick="checkInModal({{ r.number }})">Check-In</button><a href="{% url 'room-detail' r.number %}" class="btn btn-outline-secondary">View</a></div>
+    <div class="room-card-top"><span class="room-status-badge badge-green">Available</span><h2 class="room-number">{{ r.number }}</h2></div>
+    <h3 class="room-type">{{ r.roomType }}</h3>
+    <p class="room-summary"><i class="fas fa-user-friends" aria-hidden="true"></i> {{ r.capacity }} guests <span aria-hidden="true">·</span> <i class="fas fa-bed" aria-hidden="true"></i> {{ r.numberOfBeds }} beds <span aria-hidden="true">·</span> Rs. {{ r.price }}/night</p>
+    <div class="action-row"><button class="btn btn-checkin" onclick="checkInModal({{ r.number }})">Check-In</button><a href="{% url 'room-detail' r.number %}" class="btn">View Room</a></div>
   </div>
 {% endif %}
 {% endfor %}
@@ -125,8 +188,8 @@
 <option value="{{ r.number }}">{{ r.number }} — {{ r.roomType }} (Rs. {{ r.price }}/night)</option>
 {% endif %}{% endfor %}
 </select>
-<label>Check-In</label><input type="date" class="form-control" name="check_in" value="{{ today|date:'Y-m-d' }}" min="2026-01-01" max="2035-12-31" required>
-<label>Check-Out</label><input type="date" class="form-control" name="check_out" value="{{ tomorrow|date:'Y-m-d' }}" min="2026-01-01" max="2035-12-31" required>
+<label>Check-In</label><input type="date" name="check_in" value="{{ today|date:'Y-m-d' }}" min="2026-01-01" max="2035-12-31" required>
+<label>Check-Out</label><input type="date" name="check_out" value="{{ tomorrow|date:'Y-m-d' }}" min="2026-01-01" max="2035-12-31" required>
 <div class="modal-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('checkin-modal').classList.remove('active')">Cancel</button><button type="submit" class="btn-primary">Confirm Check-In</button></div>
 </form>
 </div>
