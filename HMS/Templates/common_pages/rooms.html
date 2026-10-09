@@ -5,53 +5,78 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,opsz,wght@0,6..96,400;0,6..96,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-  body:has(.room-catalog-page){overflow:hidden;background:#f8f8f5;}
-  body:has(.room-catalog-page)>nav,body:has(.room-catalog-page)>footer{display:none;}
-  .room-catalog-page{--forest:#143b2a;--forest-light:#285845;--cream:#f8f8f5;--ink:#172923;--muted:#728078;--line:#dfe4de;--soft:#e4f1e9;box-sizing:border-box;font-family:'DM Sans',sans-serif;color:var(--ink);font-size:12px;background:var(--cream);min-height:100dvh;}
+  body:has(.room-catalog-page){display:block!important;overflow:hidden;background:#f8f8f5;}
+  body:has(.room-catalog-page)>nav,body:has(.room-catalog-page)>footer{display:none!important;}
+  body:has(.room-catalog-page)>main{position:fixed;inset:0;min-height:0;overflow:hidden;}
+  .room-catalog-page{--forest:#143b2a;--forest-light:#285845;--cream:#f8f8f5;--ink:#172923;--muted:#728078;--line:#dfe4de;--soft:#e4f1e9;box-sizing:border-box;width:100%;height:100dvh;overflow:hidden;font-family:'DM Sans',sans-serif;color:var(--ink);font-size:12px;background:var(--cream);}
   .room-catalog-page *,.room-catalog-page *:before,.room-catalog-page *:after{box-sizing:border-box;}
-  .catalog-sidebar{height:100dvh;padding:33px 16px 19px;background:var(--forest);color:#e7eee9;display:flex;flex-direction:column;width:194px;flex:none;}
+  .catalog-sidebar{height:100%;min-height:0;padding:33px 16px 19px;background:var(--forest);color:#e7eee9;display:flex;flex-direction:column;width:230px;flex:none;}
   .catalog-sidebar a.brand{display:block;font-family:'Cinzel',serif;font-size:clamp(1.1rem,2.5vw,1.5rem);letter-spacing:0.18em;color:#fff;text-decoration:none;font-weight:700;text-shadow:0 6px 30px rgba(255,255,255,.3),0 14px 60px rgba(0,0,0,.7);}
   .catalog-sidebar .nav-label{margin:45px 11px 13px;color:#94b0a0;font-size:8px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;}
   .side-nav{display:grid;gap:7px;}
   .side-nav a{height:39px;padding:0 12px;display:flex;align-items:center;gap:12px;border-radius:5px;color:#b6c7bd;font-size:11px;text-decoration:none;transition:all .15s ease;}
   .side-nav a:hover,.side-nav a[aria-current=page]{color:#fff;background:var(--forest-light);}
   .side-nav a svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;flex:none;}
-  .catalog-main{flex:1;overflow:hidden;padding:clamp(19px,2.5vw,37px) clamp(22px,2.7vw,37px) 17px;min-width:0;}
-  .catalog-header{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:27px;margin-bottom:24px;}
-  .catalog-header h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:500;line-height:1;margin:0;}
-  .catalog-header p{margin:4px 0 0;color:var(--muted);font-size:10px;letter-spacing:.1em;}
-  .filter-card{background:#fff;border:1px solid var(--line);border-radius:5px;padding:16px 18px;box-shadow:0 2px 10px rgba(20,32,22,.04);margin-bottom:24px;}
+  .catalog-main{flex:1;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:clamp(24px,3vw,44px) clamp(22px,3vw,48px) 36px;}
+  .catalog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:40px;margin-bottom:24px;}
+  .catalog-header h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,3vw,38px);font-weight:500;line-height:1;margin:0;}
+  .catalog-header p{margin:7px 0 0;color:var(--muted);font-size:11px;letter-spacing:.04em;}
+  .catalog-header .add-room-link{flex:none;padding:10px 16px;border-radius:4px;background:var(--forest);color:#fff;text-decoration:none;font-size:10px;font-weight:600;letter-spacing:.06em;transition:background .15s ease;}
+  .catalog-header .add-room-link:hover{background:var(--forest-light);}
+  .filter-card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px 18px;box-shadow:0 2px 10px rgba(20,32,22,.04);margin-bottom:24px;}
   .filter-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end;}
   .filter-form label{display:block;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
   .filter-form input[type="date"]{padding:6px 10px;border:1px solid var(--line);border-radius:4px;font-size:11px;background:#fff;color:var(--ink);min-width:130px;font-family:inherit;}
-  .filter-form button{padding:7px 16px;border-radius:4px;background:var(--forest);color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.08em;transition:background .15s ease;font-family:inherit;}
+  .filter-form button{padding:9px 18px;border-radius:4px;background:var(--forest);color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.08em;transition:background .15s ease;font-family:inherit;}
   .filter-form button:hover{background:var(--forest-light);}
-  .room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
-  .room-card{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden;transition:border-color .15s ease,box-shadow .15s ease;text-decoration:none;color:inherit;display:flex;flex-direction:column;}
-  .room-card:hover{border-color:#aac8b8;box-shadow:0 10px 30px rgba(20,32,22,.08);}
-  .room-card-img{height:200px;overflow:hidden;position:relative;background:#e8ebe8;}
+  .room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));align-items:stretch;gap:22px;}
+  .room-item{min-width:0;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;transition:border-color .15s ease,box-shadow .15s ease;}
+  .room-item:hover{border-color:#aac8b8;box-shadow:0 10px 30px rgba(20,32,22,.08);}
+  .room-card{min-width:0;color:inherit;text-decoration:none;display:flex;flex:1;flex-direction:column;}
+  .room-card:hover{color:inherit;text-decoration:none;}
+  .room-card-img{height:clamp(170px,19vw,220px);overflow:hidden;position:relative;background:#e8ebe8;}
   .room-card-img img{width:100%;height:100%;object-fit:cover;display:block;}
   .room-card-img .fallback{display:grid;place-items:center;width:100%;height:100%;color:#b1b8b4;font-size:48px;}
-  .room-card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;}
+  .room-card-body{padding:16px 18px 14px;flex:1;display:flex;flex-direction:column;}
   .room-card-body .badge-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap;}
   .badge{padding:3px 7px;border-radius:3px;background:#e1f2e5;color:#277143;font-size:8px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
   .price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:var(--forest);line-height:1;}
   .room-card-body h3{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:500;margin:6px 0 4px;line-height:1.15;}
   .room-card-body p.meta{color:var(--muted);font-size:9px;margin:0 0 10px;line-height:1.4;}
-  .room-card-actions{padding:10px 16px 14px;border-top:1px solid var(--line);display:flex;gap:8px;}
-  .room-card-actions a.btn-outline{flex:1;text-align:center;padding:7px 0;border:1px solid var(--line);border-radius:4px;font-size:9px;font-weight:600;color:var(--ink);text-decoration:none;transition:all .15s ease;}
-  .room-card-actions a.btn-outline:hover{border-color:var(--forest);color:var(--forest);background:#f0f4f0;}
-  .room-card-actions a.btn-primary{flex:1;text-align:center;padding:7px 0;border-radius:4px;font-size:9px;font-weight:600;color:#fff;background:var(--forest);text-decoration:none;transition:background .15s ease;}
-  .room-card-actions a.btn-primary:hover{background:var(--forest-light);}
+  .room-card-actions{margin-top:auto;padding:12px 16px 16px;border-top:1px solid var(--line);display:flex;align-items:stretch;gap:8px;}
+  .room-card-actions form{min-width:0;}
+  .room-card-actions .btn-outline,.room-card-actions .room-action-button{min-height:36px;display:flex;justify-content:center;align-items:center;text-align:center;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:transparent;font-family:inherit;font-size:10px;font-weight:600;color:var(--ink);text-decoration:none;cursor:pointer;transition:all .15s ease;}
+  .room-card-actions .btn-outline:hover{border-color:var(--forest);color:var(--forest);background:#f0f4f0;}
+  .room-card-actions .room-action-button{width:100%;border-color:var(--forest);background:var(--forest);color:#fff;}
+  .room-card-actions .room-action-button:hover{border-color:var(--forest-light);background:var(--forest-light);}
+  .room-card-actions .room-action-button.delete{border-color:#e8caca;background:#fff;color:#9a4141;}
+  .room-card-actions .room-action-button.delete:hover{border-color:#c47777;background:#fbf3f3;}
+  .room-card-actions .room-action-button:disabled{border-color:var(--line);background:#eef0ed;color:var(--muted);cursor:not-allowed;}
   .empty-msg{color:var(--muted);font-size:12px;margin-top:8px;}
   @media(min-width:901px){
-    .catalog-layout{display:grid;grid-template-columns:194px minmax(0,1fr);height:100dvh;overflow:hidden;}
+    .catalog-layout{display:grid;grid-template-columns:230px minmax(0,1fr);height:100%;min-height:0;overflow:hidden;}
   }
   @media(max-width:900px){
-    .catalog-layout{display:block;}
-    .catalog-sidebar{height:auto;padding:24px 18px;}
-    .catalog-main{padding:24px 18px 24px;}
-    .room-catalog-page{overflow:auto;}
+    .catalog-layout{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;}
+    .catalog-sidebar{width:100%;height:auto;min-height:0;padding:16px 20px;flex-direction:row;align-items:center;gap:22px;}
+    .catalog-sidebar .nav-label{display:none;}
+    .catalog-sidebar .side-nav{display:flex;gap:6px;margin-left:auto;}
+    .catalog-sidebar .side-nav a{white-space:nowrap;}
+    .catalog-main{width:100%;padding:24px clamp(18px,4vw,36px) 32px;}
+  }
+  @media(max-width:560px){
+    .catalog-sidebar{align-items:flex-start;flex-direction:column;gap:12px;padding:14px 18px;}
+    .catalog-sidebar .side-nav{width:100%;margin:0;overflow-x:auto;}
+    .catalog-sidebar .side-nav a{flex:none;}
+    .catalog-main{padding:22px 16px 28px;}
+    .catalog-header{align-items:flex-start;}
+    .catalog-header h1{font-size:28px;}
+    .catalog-header .add-room-link{padding:9px 11px;}
+    .filter-form{align-items:stretch;}
+    .filter-form>div{flex:1;min-width:130px;}
+    .filter-form input[type="date"]{width:100%;min-width:0!important;}
+    .room-grid{grid-template-columns:1fr;gap:16px;}
+    .room-card-img{height:210px;}
   }
 </style>
 <div class="room-catalog-page">
@@ -72,7 +97,7 @@
           <p>Select a room to view details or book.</p>
         </div>
         {% if role == "manager" or role == "admin" %}
-        <a href="{% url 'add-room' %}" style="padding:7px 14px;border-radius:4px;background:var(--forest);color:#fff;text-decoration:none;font-size:10px;font-weight:600;letter-spacing:.06em;">Add Room</a>
+        <a href="{% url 'add-room' %}" class="add-room-link">Add Room</a>
         {% endif %}
       </header>
 
@@ -93,29 +118,30 @@
 
       <div class="room-grid">
         {% for room in rooms %}
-        <a href="{% url 'room-detail' room.number %}{% if fd %}?fd={{ fd }}&ld={{ ld }}{% endif %}" class="room-card">
-          <div class="room-card-img">
-            {% if room.image %}
-            <img src="{{ room.image.url }}" alt="Room {{ room.number }}" loading="lazy">
-            {% else %}
-            <div class="fallback"><i class="fas fa-bed"></i></div>
-            {% endif %}
-          </div>
-          <div class="room-card-body">
-            <div class="badge-row">
-              <span class="badge">{{ room.roomType }}</span>
-              <span class="price">Rs. {{ room.price }}/night</span>
+        <article class="room-item">
+          <a href="{% url 'room-detail' room.number %}{% if fd %}?fd={{ fd }}&ld={{ ld }}{% endif %}" class="room-card">
+            <div class="room-card-img">
+              {% if room.image %}
+              <img src="{{ room.image.url }}" alt="Room {{ room.number }}" loading="lazy">
+              {% else %}
+              <div class="fallback"><i class="fas fa-bed"></i></div>
+              {% endif %}
             </div>
-            <h3>Room {{ room.number }}</h3>
-            <p class="meta"><i class="fas fa-users mr-1"></i>{{ room.capacity }} guests · <i class="fas fa-bed mr-1"></i>{{ room.numberOfBeds }} beds</p>
-          </div>
-        </a>
-        <div class="room-card-actions">
+            <div class="room-card-body">
+              <div class="badge-row">
+                <span class="badge">{{ room.roomType }}</span>
+                <span class="price">Rs. {{ room.price }}/night</span>
+              </div>
+              <h3>Room {{ room.number }}</h3>
+              <p class="meta"><i class="fas fa-users mr-1"></i>{{ room.capacity }} guests · <i class="fas fa-bed mr-1"></i>{{ room.numberOfBeds }} beds</p>
+            </div>
+          </a>
+          <div class="room-card-actions">
           {% if role == 'manager' or role == 'admin' or role == 'receptionist' %}
           <a href="{% url 'room-edit' room.number %}" class="btn-outline">Edit</a>
           <form action="{% url 'delete-room' room.number %}" method="POST" style="flex:1;margin:0;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete" onclick="return confirm('Delete room {{ room.number }}?')">Delete</button>
+            <button type="submit" class="room-action-button delete" title="Delete" onclick="return confirm('Delete room {{ room.number }}?')">Delete</button>
           </form>
           {% endif %}
           {% if role == 'guest' or role == 'receptionist' or not role %}
@@ -125,13 +151,14 @@
             <input type="hidden" value="{{ room.number }}" name="roomid">
             <input type="hidden" value="{{ fd|default:'' }}" name="fd">
             <input type="hidden" value="{{ ld|default:'' }}" name="ld">
-            <button type="submit" class="btn btn-sm btn-primary w-100">Book</button>
+            <button type="submit" class="room-action-button">Book room</button>
           </form>
           {% else %}
-          <button type="button" class="btn btn-sm btn-secondary w-100" disabled>Occupied / Unavailable</button>
+          <button type="button" class="room-action-button" disabled>Occupied / Unavailable</button>
           {% endif %}
           {% endif %}
-        </div>
+          </div>
+        </article>
         {% empty %}
         <div class="col-12"><p class="empty-msg">No rooms found.</p></div>
         {% endfor %}
