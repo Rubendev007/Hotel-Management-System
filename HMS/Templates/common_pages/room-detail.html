@@ -25,7 +25,7 @@
                 <div class="card-body">
                     <h2 class="mb-3">Room {{ room.number }}</h2>
                     <span class="badge badge-{% if is_available %}success{% else %}danger{% endif %} badge-pill mb-3">
-                        {% if is_available %}Available{% else %}Occupied{% endif %}
+                        {% if is_available %}Available{% elif is_cleaning %}{{ room.status|title }}{% else %}Occupied{% endif %}
                     </span>
 
                     <table class="table table-borderless">
@@ -58,7 +58,9 @@
 
                     {% if is_occupied %}
                     <a href="{% url 'checkout' room.number %}" class="btn btn-danger btn-lg w-100 mt-3">Check Out Guest</a>
-                    {% elif role != 'admin' %}
+                    {% elif role != 'admin' and is_cleaning %}
+                    <p class="text-muted mt-3">This room is being cleaned and cannot currently be booked.</p>
+                    {% elif role != 'admin' and is_available %}
                     <h5 class="mb-2">Proceed to Book</h5>
                     <form action="{% url 'booking-make' %}" method="POST">
                         {% csrf_token %}

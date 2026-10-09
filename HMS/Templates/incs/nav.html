@@ -6,14 +6,16 @@
                 CrewMates Hotel
             </h2>
         </a>
+        {% if request.resolver_match.url_name != 'rooms' %}
         <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarTags">
             <span class="navbar-toggler-icon"></span>
         </button>
+        {% endif %}
 
         <div class="collapse navbar-collapse" id="navbarTags">
             {% if request.user.is_authenticated %}
             <ul class="navbar-nav ml-auto">
-
+                {% if request.resolver_match.url_name != 'rooms' %}
                 <li class="nav-item dropdown p-2">
                     <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -69,9 +71,12 @@
                     <a href="{% url 'guest-profile' user.id %}" class="nav-link">Profile</a>
                     {% endif %}
                 </li>
+                {% endif %}
+                {% if request.resolver_match.url_name != 'rooms' %}
                 <li class="nav-item p-2">
                     <a href="{% url 'logout' %}" class="nav-link text-dark">Log Out</a>
                 </li>
+                {% endif %}
             </ul>
             {% else %}
             <ul class="navbar-nav ml-auto">

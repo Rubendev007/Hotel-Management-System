@@ -17,6 +17,7 @@
   .side-nav a{height:39px;padding:0 12px;display:flex;align-items:center;gap:12px;border-radius:5px;color:#b6c7bd;font-size:11px;text-decoration:none;transition:all .15s ease;}
   .side-nav a:hover,.side-nav a[aria-current=page]{color:#fff;background:var(--forest-light);}
   .side-nav a svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .catalog-sidebar .account-nav{margin-top:auto;}
   .catalog-main{flex:1;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:clamp(24px,3vw,44px) clamp(22px,3vw,48px) 36px;}
   .catalog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:40px;margin-bottom:24px;}
   .catalog-header h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,3vw,38px);font-weight:500;line-height:1;margin:0;}
@@ -86,8 +87,11 @@
       <p class="nav-label">ROOMS</p>
       <nav class="side-nav" aria-label="Rooms nav">
         <a href="{% url 'rooms' %}" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Catalog</a>
-        <a href="{% url 'guest-dashboard' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v3m18-3v3M3 10V5m0 12h18v-6a2 2 0 0 0-2-2H3v8Zm0-8V6h6a3 3 0 0 1 3 3m-9 9h18"/></svg>Dashboard</a>
-        <a href="{% url 'guest-profile' request.user.id %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Profile</a>
+        <a href="{% if role == 'admin' or role == 'manager' %}{% url 'admin_dashboard' %}{% else %}{% url 'guest-dashboard' %}{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v3m18-3v3M3 10V5m0 12h18v-6a2 2 0 0 0-2-2H3v8Zm0-8V6h6a3 3 0 0 1 3 3m-9 9h18"/></svg>Dashboard</a>
+        <a href="{% if role == 'guest' %}{% url 'guest-profile' request.user.id %}{% else %}{% url 'employee-profile' request.user.id %}{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Profile</a>
+      </nav>
+      <nav class="side-nav account-nav" aria-label="Account">
+        <a href="{% url 'logout' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m9-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>Log Out</a>
       </nav>
     </aside>
     <main class="catalog-main">

@@ -23,7 +23,7 @@ from housekeeping_utils import rebalance_cleaning_tasks
 
 
 def room_unavailable_for_dates(room, check_in, check_out):
-    if (room.status or '').lower() == 'occupied':
+    if (room.status or '').strip().lower() in ('occupied', 'dirty', 'cleaning'):
         return True
     if (
         room.statusStartDate
@@ -186,7 +186,9 @@ def rooms(request):
     ).values_list('roomNumber_id', flat=True))
     unavailable_room_ids = set(active_booking_ids)
     unavailable_room_ids.update(
-        Room.objects.filter(status__iexact='occupied').values_list('number', flat=True)
+        Room.objects.filter(
+            status__in=['occupied', 'dirty', 'cleaning']
+        ).values_list('number', flat=True)
     )
     unavailable_room_ids.update(
         Room.objects.filter(
@@ -365,7 +367,7 @@ def room_detail(request, pk):
             return redirect("room-detail", pk=pk)
 
     is_occupied = has_active
-    is_available = not has_active
+    is_available = not room_unavailable_for_dates(room, today, today)
     fd = request.GET.get('fd') or str(today)
     ld = request.GET.get('ld') or str(today + timedelta(days=2))
 
@@ -375,6 +377,7 @@ def room_detail(request, pk):
         "amenities": room_amenities,
         "is_available": is_available,
         "is_occupied": is_occupied,
+        "is_cleaning": (room.status or '').strip().lower() in ('dirty', 'cleaning'),
         "fd": fd,
         "ld": ld,
     }

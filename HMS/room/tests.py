@@ -106,6 +106,32 @@ class BookingStabilizationTests(TestCase):
         self.assertEqual(response.context["past_count"], 1)
         self.assertEqual(response.context["active"], active_booking)
 
+    def test_admin_room_sidebar_uses_admin_dashboard_and_employee_profile(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+
+        response = self.client.get(reverse("rooms"))
+
+        self.assertContains(response, f'href="{reverse("admin_dashboard")}"')
+        self.assertContains(
+            response,
+            f'href="{reverse("employee-profile", args=[self.user.pk])}"',
+        )
+        self.assertContains(response, f'href="{reverse("logout")}"', count=1)
+        self.assertContains(response, "Profile", count=1)
+        self.assertNotContains(response, "Options")
+        self.assertNotContains(response, f'href="{reverse("guest-profile", args=[self.user.pk])}"')
+
+    def test_admin_guest_dashboard_url_redirects_to_admin_dashboard(self):
+        self.user.groups.add(Group.objects.create(name="admin"))
+
+        response = self.client.get(reverse("guest-dashboard"))
+
+        self.assertRedirects(
+            response,
+            reverse("admin_dashboard"),
+            fetch_redirect_response=False,
+        )
+
     def test_booking_make_rejects_past_checkin_and_invalid_checkout(self):
         today = date.today()
         for check_in, check_out in (
@@ -176,6 +202,79 @@ class BookingStabilizationTests(TestCase):
         response = self.client.get(reverse("rooms"))
 
         self.assertTrue(response.context["rooms"][0].is_unavailable)
+
+    def test_guest_room_catalog_blocks_rooms_being_cleaned(self):
+        self.room.status = "cleaning"
+        self.room.save(update_fields=["status"])
+
+        response = self.client.get(reverse("rooms"))
+
+        self.assertTrue(response.context["rooms"][0].is_unavailable)
+        self.assertContains(response, "Occupied / Unavailable")
+        self.assertNotContains(response, "Book room")
+
+    def test_guest_room_catalog_blocks_dirty_rooms(self):
+        self.room.status = "dirty"
+        self.room.save(update_fields=["status"])
+
+        response = self.client.get(reverse("rooms"))
+
+        self.assertTrue(response.context["rooms"][0].is_unavailable)
+        self.assertContains(response, "Occupied / Unavailable")
+
+    def test_availability_date_filter_excludes_rooms_being_cleaned(self):
+        self.room.status = "cleaning"
+        self.room.save(update_fields=["status"])
+
+        response = self.client.post(reverse("rooms"), {
+            "dateFilter": "",
+            "fd": date.today().isoformat(),
+            "ld": (date.today() + timedelta(days=1)).isoformat(),
+        })
+
+        self.assertEqual(response.context["rooms"], [])
+
+    def test_guest_room_detail_disables_booking_while_cleaning(self):
+        self.room.status = "cleaning"
+        self.room.save(update_fields=["status"])
+
+        response = self.client.get(reverse("room-detail", args=[self.room.number]))
+
+        self.assertFalse(response.context["is_available"])
+        self.assertTrue(response.context["is_cleaning"])
+        self.assertContains(response, "This room is being cleaned")
+        self.assertNotContains(response, "Book This Room")
+
+    def test_booking_submission_rejects_rooms_being_cleaned(self):
+        self.room.status = "cleaning"
+        self.room.save(update_fields=["status"])
+        check_in = date.today() + timedelta(days=1)
+
+        response = self.client.post(reverse("booking-make"), {
+            "roomid": self.room.pk,
+            "fd": check_in.isoformat(),
+            "ld": (check_in + timedelta(days=2)).isoformat(),
+            "bookGuestButton": "",
+            "name1": "",
+        })
+
+        self.assertRedirects(response, reverse("rooms"), fetch_redirect_response=False)
+        self.assertFalse(Booking.objects.exists())
+        self.assertNotIn("booking_id", self.client.session)
+
+    def test_marking_cleaned_restores_room_availability(self):
+        self.user.groups.add(Group.objects.create(name="receptionist"))
+        self.room.status = "cleaning"
+        self.room.save(update_fields=["status"])
+
+        response = self.client.get(reverse("mark-cleaned", args=[self.room.number]))
+
+        self.assertRedirects(response, reverse("rooms"), fetch_redirect_response=False)
+        self.room.refresh_from_db()
+        self.assertEqual(self.room.status, "available")
+
+        catalog_response = self.client.get(reverse("rooms"))
+        self.assertFalse(catalog_response.context["rooms"][0].is_unavailable)
 
     def test_edit_booking_form_validates_booking_dates(self):
         today = date.today()

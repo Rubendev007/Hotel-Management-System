@@ -552,6 +552,8 @@ def guest_dashboard(request):
 
     user_groups = request.user.groups.all()
     role = str(user_groups[0]) if user_groups.exists() else "guest"
+    if role in ("admin", "manager"):
+        return redirect("admin_dashboard")
     today = date.today()
     guest = Guest.objects.filter(user=request.user).first()
     active = Booking.objects.filter(guest=guest, endDate__gte=today).order_by('-startDate').first() if guest else None
