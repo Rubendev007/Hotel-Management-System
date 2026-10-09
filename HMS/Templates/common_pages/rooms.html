@@ -1,92 +1,142 @@
-<div class="container py-5 clearfix">
-    <style>
-        .cursor-pointer { cursor: pointer; }
-        .cursor-pointer:hover { background-color: rgba(0,0,0,0.03); }
-        .room-img-wrapper { height: 220px; overflow: hidden; position: relative; background-color: #f8f9fa; }
-        .room-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .card-footer-btns { padding: 0.75rem 1rem; border-top: 1px solid rgba(0,0,0,.05); background: transparent; }
-    </style>
-    <div id="messages">
-        {% for m in messages %}
-        <div class="alert alert-{{m.tags}}">{{m}}</div>
-        {% endfor %}
-    </div>
-    <div class="clearfix mb-4">
-        <h2>Room Catalog</h2>
-        <p class="text-muted">Select a room to view details or book.</p>
-        {% if role == "manager" or role == "admin" %}
-        <a href="{% url 'add-room' %}" class="btn btn-danger rounded float-right shadow-sm">Add Room <i class="fas fa-plus"></i></a>
-        {% endif %}
-    </div>
-
-    <div class="card shadow-sm border-0 rounded-3 p-3 mb-4">
-        <div class="card-body p-0">
-            <form action="" method="POST" class="form-inline flex-wrap align-items-end">
-                {% csrf_token %}
-                <div class="form-group mr-3 mb-2">
-                    <label class="font-weight-bold small d-block mb-1">From</label>
-                    <input class="form-control form-control-sm" type="date" name="fd" value="{{fd}}" style="min-width:130px;">
-                </div>
-                <div class="form-group mr-3 mb-2">
-                    <label class="font-weight-bold small d-block mb-1">To</label>
-                    <input class="form-control form-control-sm" type="date" name="ld" value="{{ld}}" style="min-width:130px;">
-                </div>
-                <button type="submit" name="dateFilter" class="btn btn-primary btn-sm mb-2 mr-2 px-3">Filter</button>
-            </form>
+{% extends '../index.html' %}
+{% load static %}
+{% block context %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,opsz,wght@0,6..96,400;0,6..96,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  body:has(.room-catalog-page){overflow:hidden;background:#f8f8f5;}
+  body:has(.room-catalog-page)>nav,body:has(.room-catalog-page)>footer{display:none;}
+  .room-catalog-page{--forest:#143b2a;--forest-light:#285845;--cream:#f8f8f5;--ink:#172923;--muted:#728078;--line:#dfe4de;--soft:#e4f1e9;box-sizing:border-box;font-family:'DM Sans',sans-serif;color:var(--ink);font-size:12px;background:var(--cream);min-height:100dvh;}
+  .room-catalog-page *,.room-catalog-page *:before,.room-catalog-page *:after{box-sizing:border-box;}
+  .catalog-sidebar{height:100dvh;padding:33px 16px 19px;background:var(--forest);color:#e7eee9;display:flex;flex-direction:column;width:194px;flex:none;}
+  .catalog-sidebar a.brand{display:block;font-family:'Cinzel',serif;font-size:clamp(1.1rem,2.5vw,1.5rem);letter-spacing:0.18em;color:#fff;text-decoration:none;font-weight:700;text-shadow:0 6px 30px rgba(255,255,255,.3),0 14px 60px rgba(0,0,0,.7);}
+  .catalog-sidebar .nav-label{margin:45px 11px 13px;color:#94b0a0;font-size:8px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;}
+  .side-nav{display:grid;gap:7px;}
+  .side-nav a{height:39px;padding:0 12px;display:flex;align-items:center;gap:12px;border-radius:5px;color:#b6c7bd;font-size:11px;text-decoration:none;transition:all .15s ease;}
+  .side-nav a:hover,.side-nav a[aria-current=page]{color:#fff;background:var(--forest-light);}
+  .side-nav a svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .catalog-main{flex:1;overflow:hidden;padding:clamp(19px,2.5vw,37px) clamp(22px,2.7vw,37px) 17px;min-width:0;}
+  .catalog-header{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:27px;margin-bottom:24px;}
+  .catalog-header h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:500;line-height:1;margin:0;}
+  .catalog-header p{margin:4px 0 0;color:var(--muted);font-size:10px;letter-spacing:.1em;}
+  .filter-card{background:#fff;border:1px solid var(--line);border-radius:5px;padding:16px 18px;box-shadow:0 2px 10px rgba(20,32,22,.04);margin-bottom:24px;}
+  .filter-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end;}
+  .filter-form label{display:block;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+  .filter-form input[type="date"]{padding:6px 10px;border:1px solid var(--line);border-radius:4px;font-size:11px;background:#fff;color:var(--ink);min-width:130px;font-family:inherit;}
+  .filter-form button{padding:7px 16px;border-radius:4px;background:var(--forest);color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.08em;transition:background .15s ease;font-family:inherit;}
+  .filter-form button:hover{background:var(--forest-light);}
+  .room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .room-card{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden;transition:border-color .15s ease,box-shadow .15s ease;text-decoration:none;color:inherit;display:flex;flex-direction:column;}
+  .room-card:hover{border-color:#aac8b8;box-shadow:0 10px 30px rgba(20,32,22,.08);}
+  .room-card-img{height:200px;overflow:hidden;position:relative;background:#e8ebe8;}
+  .room-card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+  .room-card-img .fallback{display:grid;place-items:center;width:100%;height:100%;color:#b1b8b4;font-size:48px;}
+  .room-card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;}
+  .room-card-body .badge-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap;}
+  .badge{padding:3px 7px;border-radius:3px;background:#e1f2e5;color:#277143;font-size:8px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+  .price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:var(--forest);line-height:1;}
+  .room-card-body h3{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:500;margin:6px 0 4px;line-height:1.15;}
+  .room-card-body p.meta{color:var(--muted);font-size:9px;margin:0 0 10px;line-height:1.4;}
+  .room-card-actions{padding:10px 16px 14px;border-top:1px solid var(--line);display:flex;gap:8px;}
+  .room-card-actions a.btn-outline{flex:1;text-align:center;padding:7px 0;border:1px solid var(--line);border-radius:4px;font-size:9px;font-weight:600;color:var(--ink);text-decoration:none;transition:all .15s ease;}
+  .room-card-actions a.btn-outline:hover{border-color:var(--forest);color:var(--forest);background:#f0f4f0;}
+  .room-card-actions a.btn-primary{flex:1;text-align:center;padding:7px 0;border-radius:4px;font-size:9px;font-weight:600;color:#fff;background:var(--forest);text-decoration:none;transition:background .15s ease;}
+  .room-card-actions a.btn-primary:hover{background:var(--forest-light);}
+  .empty-msg{color:var(--muted);font-size:12px;margin-top:8px;}
+  @media(min-width:901px){
+    .catalog-layout{display:grid;grid-template-columns:194px minmax(0,1fr);height:100dvh;overflow:hidden;}
+  }
+  @media(max-width:900px){
+    .catalog-layout{display:block;}
+    .catalog-sidebar{height:auto;padding:24px 18px;}
+    .catalog-main{padding:24px 18px 24px;}
+    .room-catalog-page{overflow:auto;}
+  }
+</style>
+<div class="room-catalog-page">
+  <div class="catalog-layout">
+    <aside class="catalog-sidebar" aria-label="Navigation">
+      <a href="#" class="brand">CREWMATES</a>
+      <p class="nav-label">ROOMS</p>
+      <nav class="side-nav" aria-label="Rooms nav">
+        <a href="{% url 'rooms' %}" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Catalog</a>
+        <a href="{% url 'guest-dashboard' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v3m18-3v3M3 10V5m0 12h18v-6a2 2 0 0 0-2-2H3v8Zm0-8V6h6a3 3 0 0 1 3 3m-9 9h18"/></svg>Dashboard</a>
+        <a href="{% url 'guest-profile' request.user.id %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Profile</a>
+      </nav>
+    </aside>
+    <main class="catalog-main">
+      <header class="catalog-header">
+        <div>
+          <h1>Room Catalog</h1>
+          <p>Select a room to view details or book.</p>
         </div>
-    </div>
+        {% if role == "manager" or role == "admin" %}
+        <a href="{% url 'add-room' %}" style="padding:7px 14px;border-radius:4px;background:var(--forest);color:#fff;text-decoration:none;font-size:10px;font-weight:600;letter-spacing:.06em;">Add Room</a>
+        {% endif %}
+      </header>
 
-    <div class="row g-4">
+      <div class="filter-card">
+        <form action="" method="POST" class="filter-form">
+          {% csrf_token %}
+          <div>
+            <label for="fd">From</label>
+            <input class="form-control" id="fd" type="date" name="fd" value="{{fd}}" style="min-width:130px;">
+          </div>
+          <div>
+            <label for="ld">To</label>
+            <input class="form-control" id="ld" type="date" name="ld" value="{{ld}}" style="min-width:130px;">
+          </div>
+          <button type="submit" name="dateFilter">Filter</button>
+        </form>
+      </div>
+
+      <div class="room-grid">
         {% for room in rooms %}
-        <div class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
-            <div class="card h-100 shadow-sm w-100 d-flex flex-column border-0 text-decoration-none text-dark">
-                <a href="{% url 'room-detail' room.number %}{% if fd %}?fd={{ fd }}&ld={{ ld }}{% endif %}" class="text-decoration-none text-dark">
-                    <div class="room-img-wrapper d-flex flex-column align-items-center justify-content-center">
-                        {% if room.image %}
-                        <img src="{{ room.image.url }}" alt="Room {{ room.number }}">
-                        {% else %}
-                        <i class="fas fa-bed fa-3x text-muted mb-2"></i>
-                        <h5 class="text-muted">Room {{ room.number }}</h5>
-                        {% endif %}
-                    </div>
-                    <div class="card-body p-3 d-flex flex-column flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge badge-info badge-pill">{{ room.roomType }}</span>
-                            <span class="font-weight-bold text-primary">Rs. {{ room.price }}/night</span>
-                        </div>
-                        <h5 class="card-title font-weight-bold">Room {{ room.number }}</h5>
-                        <p class="card-text text-muted small mb-2"><i class="fas fa-users mr-1"></i>{{ room.capacity }} guests · <i class="fas fa-bed mr-1"></i>{{ room.numberOfBeds }} beds</p>
-                        <div class="mt-auto pt-2 border-top">
-                            <span class="btn btn-sm btn-outline-primary w-100">View Details</span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-footer-btns d-flex gap-2">
-                    {% if role == 'manager' or role == 'admin' or role == 'receptionist' %}
-                    <a href="{% url 'room-edit' room.number %}" class="btn btn-sm btn-outline-secondary w-50" onclick="event.stopPropagation()" title="Edit">Edit</a>
-                    <form action="{% url 'delete-room' room.number %}" method="POST" onclick="event.stopPropagation()" class="mb-0 w-50" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete" onclick="return confirm('Delete room {{ room.number }}?')">Delete</button>
-                    </form>
-                    {% endif %}
-                    {% if role == 'guest' or role == 'receptionist' or not role %}
-                    {% if not room.is_unavailable %}
-                    <form action="{% url 'booking-make' %}" method="POST" onclick="event.stopPropagation()" class="w-100 mb-0">
-                        {% csrf_token %}
-                        <input type="hidden" value="{{ room.number }}" name="roomid">
-                        <input type="hidden" value="{{ fd|default:'' }}" name="fd">
-                        <input type="hidden" value="{{ ld|default:'' }}" name="ld">
-                        <button type="submit" class="btn btn-sm btn-primary w-100">Book</button>
-                    </form>
-                    {% else %}
-                    <button type="button" class="btn btn-sm btn-secondary w-100" disabled>Occupied / Unavailable</button>
-                    {% endif %}
-                    {% endif %}
-                </div>
+        <a href="{% url 'room-detail' room.number %}{% if fd %}?fd={{ fd }}&ld={{ ld }}{% endif %}" class="room-card">
+          <div class="room-card-img">
+            {% if room.image %}
+            <img src="{{ room.image.url }}" alt="Room {{ room.number }}" loading="lazy">
+            {% else %}
+            <div class="fallback"><i class="fas fa-bed"></i></div>
+            {% endif %}
+          </div>
+          <div class="room-card-body">
+            <div class="badge-row">
+              <span class="badge">{{ room.roomType }}</span>
+              <span class="price">Rs. {{ room.price }}/night</span>
             </div>
+            <h3>Room {{ room.number }}</h3>
+            <p class="meta"><i class="fas fa-users mr-1"></i>{{ room.capacity }} guests · <i class="fas fa-bed mr-1"></i>{{ room.numberOfBeds }} beds</p>
+          </div>
+        </a>
+        <div class="room-card-actions">
+          {% if role == 'manager' or role == 'admin' or role == 'receptionist' %}
+          <a href="{% url 'room-edit' room.number %}" class="btn-outline">Edit</a>
+          <form action="{% url 'delete-room' room.number %}" method="POST" style="flex:1;margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Delete" onclick="return confirm('Delete room {{ room.number }}?')">Delete</button>
+          </form>
+          {% endif %}
+          {% if role == 'guest' or role == 'receptionist' or not role %}
+          {% if not room.is_unavailable %}
+          <form action="{% url 'booking-make' %}" method="POST" style="flex:1;margin:0;">
+            {% csrf_token %}
+            <input type="hidden" value="{{ room.number }}" name="roomid">
+            <input type="hidden" value="{{ fd|default:'' }}" name="fd">
+            <input type="hidden" value="{{ ld|default:'' }}" name="ld">
+            <button type="submit" class="btn btn-sm btn-primary w-100">Book</button>
+          </form>
+          {% else %}
+          <button type="button" class="btn btn-sm btn-secondary w-100" disabled>Occupied / Unavailable</button>
+          {% endif %}
+          {% endif %}
         </div>
         {% empty %}
-        <div class="col-12"><p class="text-muted">No rooms found.</p></div>
+        <div class="col-12"><p class="empty-msg">No rooms found.</p></div>
         {% endfor %}
-    </div>
+      </div>
+    </main>
+  </div>
 </div>
+{% endblock %}

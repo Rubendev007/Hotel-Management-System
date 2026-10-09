@@ -36,7 +36,7 @@ def register_page(request):
                 user = form.save()
                 username = form.cleaned_data.get('username')
 
-                group = Group.objects.get(name="guest")
+                group, created = Group.objects.get_or_create(name="guest")
                 user.groups.add(group)
 
                 curGuest = Guest(
